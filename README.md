@@ -1,4 +1,9 @@
 dotfiles
 ========
+my dotfiles
 
-dotfiles
+deploy them:
+
+```shell
+	bin/deploy --email foo@bar.com
+```
