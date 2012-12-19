@@ -1,0 +1,45 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my %vars = map { s/^\-\-//; $_ } @ARGV;
+
+FILE: for my $conf_file (glob "conf/*") {
+	(my $dot_file = $conf_file) =~ s{^conf/}{$ENV{HOME}/.};
+	backup($dot_file) if -e $dot_file;
+
+	open my $ifh, '<', $conf_file or die "$conf_file: $!\n";
+  open my $ofh, '+>', $dot_file or die "$dot_file: $!\n";
+
+	while (<$ifh>) {
+		my @vars = /\{\{\{(\w+)\}\}\}/g;
+		my @missing = grep { ! exists $vars{$_} } @vars;
+
+		if (scalar @missing) {
+			local $" = ', ';
+			warn "can't handle $conf_file: you didn't give me interpolations for @missing!\n";
+			close $ifh;
+			close $ofh;
+			restore($dot_file);
+			next FILE;
+		}
+
+		# interpolate the vars now
+		s/\{\{\{(\w+)\}\}\}/$vars{$1}/g;
+
+		print $ofh $_;
+	}
+}
+
+# lame backup/restores
+sub backup {
+	my ($file) = @_;
+	system("cp $file $file.old");
+}
+
+sub restore {
+	my ($file) = @_;
+	return unless -e "$file.old";
+	system("cp $file.old $file");
+}
