@@ -1,0 +1,44 @@
+[user]
+  name = Belden Lyman
+  email = {{{email}}}
+
+[core]
+  pager         = less -x2
+
+[push]
+  # Lets you just type `git push` instead of `git push origin master`
+  # if you're on master
+  default       = current
+
+# Colours make it easy to see conflicts, changes and index state a lot easier
+[color]
+  all           = auto
+  pager         = true
+  diff          = auto
+  interactive   = auto
+  status        = auto
+  branch        = true
+  task          = true
+  wtf           = true
+
+[color "status"]
+  branch        = green
+
+[color "diff"]
+  plain        = normal
+  meta         = green
+  frag         = yellow
+  old          = magenta
+  new          = cyan
+  commit       = yellow bold
+  whitespace   = reverse red
+
+
+[alias]
+  # Print a compact tree with lots of information stuffed in each line
+  lg   = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %C(blue)<%an> %C(black)(%cD)%Creset'
+
+  # Print a graph, detect moving and renaming of files, make --stat display nicely
+  logg = log -C --graph --stat=100,100
+
+  pr = pull --rebase
