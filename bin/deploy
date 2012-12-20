@@ -18,7 +18,7 @@ FILE: for my $conf_file (glob "conf/*") {
 
 		if (scalar @missing) {
 			local $" = ', ';
-			warn "can't handle $conf_file: you didn't give me interpolations for @missing!\n";
+			warn "skipped $conf_file (no args given for @missing)\n";
 			close $ifh;
 			close $ofh;
 			restore($dot_file);
