@@ -42,3 +42,6 @@
   logg = log -C --graph --stat=100,100
 
   pr = pull --rebase
+
+  # checkout and track a remote branch
+  grab = !git-grab $@
