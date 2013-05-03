@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# this only works for Belden's particular directory structure
+cd ~/code
+cp -f ~/code/pinfo/pinfo ~/code/dotfiles/conf/pinfo
+. ~/code/dotfiles/conf/pinfo
