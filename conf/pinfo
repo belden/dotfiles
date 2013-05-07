@@ -5,44 +5,35 @@ export PROMPT_COMMAND=pinfo::ps1
 function pinfo () {
     case $1 in
         '-ps1') pinfo::ps1 ;;
+				configure) shift; pinfo::configure "$@" ;;
         *) pinfo::explain ;;
     esac
 }
 
-function pinfo::as_green () {
-    local text=$1
-    echo "\e[32;3m${text}\e[0;0m"
+function pinfo::configure() {
+		local arg=$1
+		local command=${arg:0:1}
+		local flag=${arg:1}
+		if [[ "$command" == "+" ]]; then
+				eval "pinfo_style_$flag=0"
+		else
+				eval "pinfo_style_$flag=1"
+		fi
 }
 
-function pinfo::as_red () {
-    local text=$1
-    echo "\e[31;3m${text}\e[0;0m"
+function pinfo::warn () {
+   echo "$@" 1>&2
 }
 
-function pinfo::as_yellow () {
-    local text=$1
-    echo "\e[33;3m${text}\e[0;0m"
-}
-
-function pinfo::as_cyan () {
-    local text=$1
-    echo "\e[36;3m${text}\e[0;0m"
-}
-
-function pinfo::view::git::status::untracked () {
-    local text=$1
-    echo "$(pinfo::as_red $text)"
-}
-
-function pinfo::is_a_git_dir () {
-    git rev-parse --show-toplevel 1> /dev/null 2>&1
-    echo $?
-}
-
+typeset pinfo_style_underline=0
 function pinfo::style::underline () {
-    local text=$1
-    text=$(echo $1 | perl -pe 's/\[(\d+);\dm/[\1;4m/g')
-    echo -e "$text\e[0;0m"
+		if [[ $pinfo_style_underline -eq 0 ]]; then
+				local text=$1
+				text=$(echo $text | perl -pe 's/\[(\d+);\dm/[\1;4m/g')
+				echo -e "$text\e[0;0m"
+		else
+				echo $1
+		fi
 }
 
 function pinfo::style::bold () {
@@ -51,17 +42,47 @@ function pinfo::style::bold () {
     echo -e "$text\e[0;0m"
 }
 
+function pinfo::style::as_green () {
+    local text=$1
+    echo "\e[32;3m${text}\e[0;0m"
+}
+
+function pinfo::style::as_red () {
+    local text=$1
+    echo "\e[31;3m${text}\e[0;0m"
+}
+
+function pinfo::style::as_yellow () {
+    local text=$1
+    echo "\e[33;3m${text}\e[0;0m"
+}
+
+function pinfo::style::as_cyan () {
+    local text=$1
+    echo "\e[36;3m${text}\e[0;0m"
+}
+
+function pinfo::view::git::status::untracked () {
+    local text=$1
+    echo "$(pinfo::style::as_red $text)"
+}
+
+function pinfo::is_a_git_dir () {
+    git rev-parse --show-toplevel 1> /dev/null 2>&1
+    echo $?
+}
+
 function pinfo::view::git::repo_root () {
     local text=$1
-    echo "$(pinfo::style::underline $(pinfo::as_green $text))"
+    echo "$(pinfo::style::underline $(pinfo::style::as_green $text))"
 }
 
 function pinfo::view::git::branchbug::added () {
-    echo "$(pinfo::as_red +)"
+    echo "$(pinfo::style::as_red +)"
 }
 
 function pinfo::view::git::branchbug::modified () {
-    echo "$(pinfo::as_red .)"
+    echo "$(pinfo::style::as_red .)"
 }
 
 function pinfo::pwd () {
@@ -86,10 +107,10 @@ function pinfo::branch () {
     if [ -n "$branch" ]; then
         git status --porcelain | perl -ne 'exit(1) if /^ /; exit(2) if /^[?]/';
         case "$?" in 
-            "0") branch="$(pinfo::as_green $branch)" ;;
-            "1") branch="$(pinfo::as_red $branch)" ;;
+            "0") branch="$(pinfo::style::as_green $branch)" ;;
+            "1") branch="$(pinfo::style::as_red $branch)" ;;
             "2") branch="$(pinfo::view::git::status::untracked $branch)" ;;
-            "130") branch="$(pinfo::as_cyan $branch)" ;;
+            "130") branch="$(pinfo::style::as_cyan $branch)" ;;
         esac;
 
         git status --porcelain | perl -ne 'exit(3) if /^[A]/; exit(4) if /^\s*[M]/';
@@ -108,8 +129,8 @@ function pinfo::ps1 () {
     local exit="$?"
     local bullet_character="\342\200\242";
     case "$exit" in
-        "0") bullet_character="$(pinfo::as_green $bullet_character)" ;;
-        *)   bullet_character="$(pinfo::as_red $bullet_character)" ;;
+        "0") bullet_character="$(pinfo::style::as_green $bullet_character)" ;;
+        *)   bullet_character="$(pinfo::style::as_red $bullet_character)" ;;
     esac
 
     export PS1="$bullet_character [\u@\h:$(pinfo::pwd)]$(pinfo::branch) $ "
