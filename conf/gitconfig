@@ -45,3 +45,5 @@
 
   # checkout and track a remote branch
   grab = !git-grab $@
+
+  conflicts = !git status | grep 'both modified' | awk '{print $4}'
