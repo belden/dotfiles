@@ -48,4 +48,4 @@
 
   conflicts = !git status | grep 'both modified' | awk '{print $4}'
 
-  pull-all = !for f in `git branch | cut -b 3-`; do git checkout $f; git pull; done
+  pull-all = !git branch | cut -b 3- | perl -lne 'system qq,git checkout $_ && git pull,'
