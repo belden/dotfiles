@@ -13,7 +13,7 @@ FILE: for my $conf_file (glob "conf/*") {
   open my $ofh, '+>', $dot_file or die "$dot_file: $!\n";
 
 	while (<$ifh>) {
-		my @vars = /\{\{\{(\w+)\}\}\}/g;
+		my @vars = /\{\{ (\w+) \}\}/g;
 		my @missing = grep { ! exists $vars{$_} } @vars;
 
 		if (scalar @missing) {
@@ -26,7 +26,7 @@ FILE: for my $conf_file (glob "conf/*") {
 		}
 
 		# interpolate the vars now
-		s/\{\{\{(\w+)\}\}\}/$vars{$1}/g;
+		s/\{\{ (\w+) \}\}/$vars{$1}/g;
 
 		print $ofh $_;
 	}
