@@ -1,6 +1,6 @@
 [user]
   name = Belden Lyman
-  email = {{{email}}}
+  email = {{ email }}
 
 [core]
   pager         = less -x2
@@ -47,3 +47,5 @@
   grab = !git-grab $@
 
   conflicts = !git status | grep 'both modified' | awk '{print $4}'
+
+  pull-all = !for f in `git branch | cut -b 3-`; do git checkout $f; git pull; done
