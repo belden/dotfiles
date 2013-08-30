@@ -1,0 +1,36 @@
+# -*- mode: shell-script -*-
+# bashrc for my workstations - these are actual machines that
+# have a keyboard attached to them.
+
+function bashrc_workstation::once () {
+  [[ $(bl::already_did "bashrc_workstation::once") ]] && return
+  bashrc_workstation::go
+}
+
+function bashrc_workstation::go () {
+	# Caps_Lock, thy name is Control_L
+	xmodmap -e 'remove Lock = Caps_Lock'
+	xmodmap -e 'keysym Caps_Lock = Control_L'
+	xmodmap -e 'add Control = Control_L'
+	## xmodmap -e 'keysym Caps_Lock = Control_L'
+}
+
+function bl::stat::atime () {
+  # give me atime of ${1}, or return -0
+  stat -c %X ${1} 2> /dev/null || echo -0
+}
+
+function bl::already_did () {
+  local file="${HOME}/.tmp/${1}"
+	local last_touch_time=$(bl::stat::atime $file)
+	local uptime=$(bl::stat::atime /dev)
+
+	if [[ $last_touch_time -gt $uptime ]]; then
+    echo 1
+  else
+    touch $file
+    echo 0
+  fi
+}
+
+bashrc_workstation::once
