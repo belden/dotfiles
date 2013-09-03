@@ -4,30 +4,49 @@ use strict;
 use warnings;
 
 my %vars = map { s/^\-\-//; $_ } @ARGV;
-
 FILE: for my $conf_file (glob "conf/*") {
+
 	(my $dot_file = $conf_file) =~ s{^conf/}{$ENV{HOME}/.};
-	backup($dot_file) if -e $dot_file;
+	copy_file($conf_file, $dot_file, sub {
 
-	open my $ifh, '<', $conf_file or die "$conf_file: $!\n";
-  open my $ofh, '+>', $dot_file or die "$dot_file: $!\n";
-
-	while (<$ifh>) {
 		my @vars = /\{\{ (\w+) \}\}/g;
 		my @missing = grep { ! exists $vars{$_} } @vars;
 
 		if (scalar @missing) {
 			local $" = ', ';
-			warn "skipped $conf_file (no args given for @missing)\n";
-			close $ifh;
-			close $ofh;
-			restore($dot_file);
-			next FILE;
+			die "skipped $conf_file (no args given for @missing)\n";
 		}
 
 		# interpolate the vars now
 		s/\{\{ (\w+) \}\}/$vars{$1}/g;
+	});
+}
 
+$DB::single = 1;1;1;
+mkdir "$ENV{HOME}/bin/development-tools" if ! -d "$ENV{HOME}/bin/development-tools";
+SCRIPT: for my $script_file (glob "scripts/*") {
+	(my $destination = $script_file) =~ s{^scripts/}{$ENV{HOME}/bin/development-tools/};
+	copy_file($script_file, $destination);
+}
+
+sub copy_file {
+	my ($source, $destination, $callback) = @_;
+  $callback ||= sub {};
+
+	backup($destination) if -e $destination;
+	open my $ifh, '<', $source or die "$source: $!\n";
+  open my $ofh, '+>', $destination or die "$destination: $!\n";
+
+	while (<$ifh>) {
+		local $@;
+		eval { $callback->() };
+		if ($@) {
+			warn $@;
+			restore($destination);
+			close $ifh;
+			close $ofh;
+			last;
+		}
 		print $ofh $_;
 	}
 }
