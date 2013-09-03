@@ -45,7 +45,8 @@
 
   # checkout and track a remote branch
   grab = !git-grab $@
+  grab-all = !git branch | cut -b 3- | perl -lne 'system qq,(git grab $_ || git pull) > /dev/null 2>&1,'
 
   conflicts = !git status | grep 'both modified' | awk '{print $4}'
 
-  pull-all = !git branch | cut -b 3- | perl -lne 'system qq,git checkout $_ && git pull,'
+  pull-all = !git-pull-all

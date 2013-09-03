@@ -1,0 +1,9 @@
+#!/bin/bash
+
+function git-grab::main() {
+  local branch=${1#origin/}
+  local remote=${2:-origin}
+  git checkout --track -b $branch $remote/$branch
+}
+
+git-grab::main $@

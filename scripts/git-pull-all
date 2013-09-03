@@ -1,0 +1,9 @@
+#!/bin/bash
+
+function git_pull_all::go() {
+  local bb=$(git rev-parse --abbrev-ref HEAD)
+  git branch | cut -b 3- | perl -lne 'system qq,git checkout $_ && git pull,';
+  git checkout ${bb}
+}
+
+git_pull_all::go
