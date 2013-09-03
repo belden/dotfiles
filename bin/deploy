@@ -22,7 +22,6 @@ FILE: for my $conf_file (glob "conf/*") {
 	});
 }
 
-$DB::single = 1;1;1;
 mkdir "$ENV{HOME}/bin/development-tools" if ! -d "$ENV{HOME}/bin/development-tools";
 SCRIPT: for my $script_file (glob "scripts/*") {
 	(my $destination = $script_file) =~ s{^scripts/}{$ENV{HOME}/bin/development-tools/};
