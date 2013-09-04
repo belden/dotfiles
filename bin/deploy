@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-my %vars = map { s/^\-\-//; $_ } @ARGV;
+my %vars = map { s/^\-\-//; split /=/, $_ } @ARGV;
 FILE: for my $conf_file (glob "conf/*") {
 
 	(my $dot_file = $conf_file) =~ s{^conf/}{$ENV{HOME}/.};
