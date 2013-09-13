@@ -1,21 +1,25 @@
+# I trust Logan
+multiuser on
+acladd lbell
+
 # bind ^A0 .. ^A9 to drag my pair along with me
 bind 0
-bind 0 at % select 0
 bind 1
-bind 1 at % select 1
 bind 2
-bind 2 at % select 2
 bind 3
-bind 3 at % select 3
 bind 4
-bind 4 at % select 4
 bind 5
-bind 5 at % select 5
 bind 6
-bind 6 at % select 6
 bind 7
-bind 7 at % select 7
 bind 8
-bind 8 at % select 8
 bind 9
+bind 0 at % select 0
+bind 1 at % select 1
+bind 2 at % select 2
+bind 3 at % select 3
+bind 4 at % select 4
+bind 5 at % select 5
+bind 6 at % select 6
+bind 7 at % select 7
+bind 8 at % select 8
 bind 9 at % select 9
