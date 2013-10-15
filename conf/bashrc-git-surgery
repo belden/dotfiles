@@ -1,0 +1,11 @@
+function killfile () { 
+    local file=$1
+    echo "killfile lib/$file" | tee -a ~/.killfile.log;
+    git filter-branch -f --tree-filter "rm -f $*" HEAD
+}
+
+function killpm () { 
+    local file=$1;
+    file=$(echo $file | sed 's,::,/,g;s,$,.pm,');
+    killfile "lib/$file"
+}
