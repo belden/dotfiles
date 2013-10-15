@@ -1,6 +1,6 @@
 function killfile () { 
     local file=$1
-    echo "killfile lib/$file" | tee -a ~/.killfile.log;
+    echo "killfile $file" | tee -a ~/.killfile.log;
     git filter-branch -f --tree-filter "rm -f $*" HEAD
 }
 
