@@ -26,6 +26,7 @@ mkdir "$ENV{HOME}/bin/development-tools" if ! -d "$ENV{HOME}/bin/development-too
 SCRIPT: for my $script_file (glob "scripts/*") {
 	(my $destination = $script_file) =~ s{^scripts/}{$ENV{HOME}/bin/development-tools/};
 	copy_file($script_file, $destination);
+  chmod 0755, $destination;
 }
 
 sub copy_file {
