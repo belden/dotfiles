@@ -50,3 +50,11 @@
   conflicts = !git status | grep 'both modified' | awk '{print $4}'
 
   pull-all = !git-pull-all
+
+  co = checkout
+
+  history = log --stat=1000,1000 -p
+
+  egrep = !find . -type d -name .git -prune -o -type d -name local -prune -o -type d -name node_modules -prune -o -type f -print | xargs grep -Hn $@
+
+  find = !git ls-files | grep $@
