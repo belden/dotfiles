@@ -5,20 +5,20 @@ export PROMPT_COMMAND=pinfo::ps1
 function pinfo () {
     case $1 in
         '-ps1') pinfo::ps1 ;;
-				configure) shift; pinfo::configure "$@" ;;
+        configure) shift; pinfo::configure "$@" ;;
         *) pinfo::explain ;;
     esac
 }
 
 function pinfo::configure() {
-		local arg=$1
-		local command=${arg:0:1}
-		local flag=${arg:1}
-		if [[ "$command" == "+" ]]; then
-				eval "pinfo_style_$flag=0"
-		else
-				eval "pinfo_style_$flag=1"
-		fi
+    local arg=$1
+    local command=${arg:0:1}
+    local flag=${arg:1}
+    if [[ "$command" == "+" ]]; then
+        eval "pinfo_style_$flag=0"
+    else
+        eval "pinfo_style_$flag=1"
+    fi
 }
 
 function pinfo::warn () {
@@ -27,13 +27,13 @@ function pinfo::warn () {
 
 typeset pinfo_style_underline=0
 function pinfo::style::underline () {
-		if [[ $pinfo_style_underline -eq 0 ]]; then
-				local text=$1
-				text=$(echo $text | perl -pe 's/\[(\d+);\dm/[\1;4m/g')
-				echo -e "$text\e[0;0m"
-		else
-				echo $1
-		fi
+    if [[ $pinfo_style_underline -eq 0 ]]; then
+        local text=$1
+        text=$(echo $text | perl -pe 's/\[(\d+);\dm/[\1;4m/g')
+        echo -e "$text\e[0;0m"
+    else
+        echo $1
+    fi
 }
 
 function pinfo::style::bold () {
