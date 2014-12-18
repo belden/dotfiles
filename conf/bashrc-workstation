@@ -3,10 +3,10 @@
 # have a keyboard attached to them.
 
 function bashrc_workstation::go () {
-	# Caps_Lock, thy name is Control_L
-	xmodmap -e 'remove Lock = Caps_Lock' && \
-	  xmodmap -e 'keysym Caps_Lock = Control_L' && \
-  	xmodmap -e 'add Control = Control_L'
+  # Caps_Lock, thy name is Control_L
+  xmodmap -e 'remove Lock = Caps_Lock' && \
+    xmodmap -e 'keysym Caps_Lock = Control_L' && \
+    xmodmap -e 'add Control = Control_L'
 }
 
 bashrc_workstation::go > /dev/null 2>&1 &
