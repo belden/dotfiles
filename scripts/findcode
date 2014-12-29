@@ -1,0 +1,96 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+my_log("$^X $0 @ARGV");
+
+my ($code, $tests);
+my ($saw_code, $saw_tests);
+
+GetOptions(
+	'hide-comments!' => \(my $hide_comments = 1),
+	'code!' => sub { $saw_code = $code = pop() },
+	'tests!' => sub { $saw_tests = $tests = pop() },
+	'everything' => \(my $everything = 0),
+	'verbose' => \(my $verbose = 0),
+	'root=s' => \((my $root) = do {
+		chomp(my $dir = `run_bash_func __gitdir`);
+		$dir =~ s{\.git$}{};
+		if (! $dir) {
+			chomp($dir = `pwd`);
+		}
+		$dir;
+	}),
+	'near=s' => \(my $foreign_module),
+);
+
+if ($foreign_module) {
+	chomp($root = `whichpm $foreign_module`);
+	$root =~ s{^(.*/).*\.pm$}{$1};
+}
+
+# "findcode foo" --> "findcode --code --tests foo"
+$code = $tests = 1 unless grep { $_ } ($code, $tests);
+$tests = 0 if $saw_code && !$saw_tests;
+$code = 0 if $saw_tests && !$saw_code;
+
+my ($search_regex) = @ARGV;
+$search_regex =~ s{(?<!\\)/}{\\/}g;
+die "Usage: $0 <search>\n" unless $search_regex;
+
+my $match = build_matcher($search_regex);
+
+my $find_fh = find_files(
+	include_code => $code,
+	include_tests => $tests,
+	include_everything => $everything,
+	verbose => $verbose,
+	root => $root,
+);
+
+while (my $file = <$find_fh>) {
+	chomp $file;
+	local @ARGV = ($file);
+	local $.;
+	while (<>) {
+		next if /^\s*#/ && $hide_comments && $file !~ /\.css$/;
+		print "$file:$.:$_" if $match->();
+	}
+}
+
+exit 0;
+
+sub my_log {
+	my ($string) = @_;
+	open my $fh, '>>', "$ENV{HOME}/.findcode-log";
+	print $fh "$string\n";
+	close $fh;
+}
+
+sub find_files {
+	my (%args) = @_;
+
+	my $root = $args{root};
+	my $find_command = "/usr/bin/find -L $root -type f -not -name '.*' -not -name '*~' -not -path '*/.git/*' -not -path '*/local/*'";
+	$find_command .= " -not -path '$root/lib/*'" if ! $args{include_code};
+	$find_command .= " -not -path '$root/t/lib/*'" if ! $args{include_tests};
+
+	if (!$args{include_everything}) {
+		$find_command .= join ' ', map { " -not -path '*/$_/*'" } qw(scripts media sql);
+	}
+
+	print "running: $find_command\n" if $args{verbose};
+
+	open my $fh, "$find_command|" or die "fork find: $!\n";
+	return $fh;
+}
+
+sub build_matcher {
+	my ($search) = @_;
+	local $@;
+	eval "qr/$search/; 1";
+	$search = qr/\Q$search\E/ if $@;
+	return eval "sub { m{$search} }";
+}

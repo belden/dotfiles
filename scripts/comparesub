@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+my $mode = 'compare-subroutines';
+GetOptions(
+	'as-method-signature' => sub { $mode = 'method-signature' },
+);
+
+$|++;
+my ($subname) = @ARGV;
+$subname or die "gotta give me something to look for\n";
+
++{
+	'compare-subroutines' => \&compare_subroutines,
+	# 'method-signature' => sub { ... },
+}->{$mode}->($subname);
+
+# TODO: use Shutterstock::Lingua::Multilingual::EditDistance::edit_distance to
+# calculate a "Refactorability" score between two methods
+
+sub compare_subroutines {
+	my ($subname) = @_;
+	foreach my $result (`findcode "^\\s*sub +\\b$subname\\b"`) {
+		my ($file_name, $line_number) = split /:/, $result;
+		if (open my $fh, '<', $file_name) {
+		FAST_FORWARD: while (<$fh>) {
+				last FAST_FORWARD if $. == $line_number - 1;
+			}
+			print "$file_name:$line_number\n";
+			while (<$fh>) {
+				print;
+				last if /^\}/;
+				last if /sub +$subname +\{.*?\}\s*$/;
+			}
+			print "\n";
+		}
+	}
+}

@@ -1,0 +1,8 @@
+#!/usr/bin/env perl
+
+use Cwd;
+my $file = shift;
+my $fp = Cwd::abs_path($file);
+print "$fp\n" if -e $fp;
+
+

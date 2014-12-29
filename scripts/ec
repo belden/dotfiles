@@ -1,0 +1,72 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+# ec <arg> - open <arg> in a new buffer in an existing emacs session,
+#            or start a new emacs session and open <arg>
+#
+# It handles grep -Hn output: 'ec foo.pl:1234' opens foo.pl to line 1234.
+# It handles perl warnings: 'ec foo.pl line 1234' opens foo.pl to line 1234.
+#
+# Note, this works best if you have
+#    (server-start)
+# in your ~/.emacs
+
+use Getopt::Long;
+my $elisp;
+GetOptions(
+  'elisp=s' => \$elisp,
+  'setenv=s' => sub {
+		my $arg = pop();
+		my ($env, $value) = $arg =~ /=/
+			? (split /=/, $arg)
+			: ($arg, $ENV{$arg});
+		$elisp = qq{(setenv "$env" "$value")},
+  },
+  'env' => \(my $set_env),
+  'peek|join' => \(my $join_existing_session),
+);
+
+my ($emacsclient) = grep { -e $_ } qw(
+  /usr/local/emacs23.3.1/bin/emacsclient
+  /usr/local/bin/emacsclient
+  /usr/bin/emacsclient
+);
+
+if ($set_env) {
+  # update emacs to use the environment in this shell; for example, maybe I have done
+  #     perlbrew use perl-5.10.1
+  # and now I want my emacs to use perl-5.10.1 as well; here's how to inform emacs of perlbrew:
+  #     env | grep -i perl | cut -f 1 -d = | ec --setenv
+  while (<>) {
+    chomp;
+    my ($var) = $_ =~ m{^(\w+)=?};
+    system("$0 --setenv $var=$ENV{$var}");
+  }
+} else {
+  my ($arg, @extra) = @ARGV;
+  my ($file, $line_number) = split /:/, $arg || '';
+
+  my $extra = join ' ', @extra;
+  if (!$line_number && $extra =~ m/line (\d+)/) {
+    $line_number = $1;
+  }
+
+  my ($cmd, $foreground);
+  if ($elisp) {
+    $cmd = qq{$emacsclient -e '$elisp'};
+  } elsif ($line_number && $line_number =~ /^\d+/) {
+    $cmd = qq{$emacsclient -e '(find-file "$file")' -e '(set-mark-and-goto-line $line_number)'};
+  } elsif ($arg && -f $arg) {
+    $cmd = "$emacsclient --no-wait $arg";
+  } elsif ($join_existing_session) {
+    $cmd = "$emacsclient -nw";
+    $foreground = 1;
+  } else {
+    $cmd = "$emacsclient --no-wait $file";
+  }
+
+  $cmd .= '> /dev/null 2>&1 &' if ! $foreground;
+  exec $cmd;
+}

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+find . -type l -not -path '*/.git/*' | xargs -r file | grep 'broken symbolic link' | cut -f 1 -d : | xargs -r rm
+find . -type f -not -path '*/.git/*' -name '*~' | xargs -r rm 

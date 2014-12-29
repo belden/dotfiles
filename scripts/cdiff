@@ -1,0 +1,66 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my $diff;
+if (@ARGV) {
+	open $diff, "diff @ARGV |"	or die "fork diff: $!\n";
+} elsif (-p STDIN) {
+	$diff = \*STDIN;
+}
+
+while (<$diff>) {
+	print decorate($_);
+}
+
+sub first (&@) {
+	my $code = shift;
+	foreach (@_) {
+		return $_ if $code->();
+	}
+	return ();
+}
+
+sub decorate {
+	my ($line) = @_;
+	my ($match) = first { $line =~ $_->{matcher} } ({
+		matcher => qr/^--- /,
+		decorator => \&file_start,
+	}, {
+		matcher => qr/^\+\+\+ /,
+		decorator => \&file_start,
+	}, {
+		matcher => qr/^@@/,
+		decorator => \&hunk_start,
+	}, {
+		matcher => qr/^\+/,
+		decorator => \&cyan,
+	}, {
+		matcher => qr/^\-/,
+		decorator => \&purple,
+	});
+
+	$match ||= +{
+		decorator => sub { shift() },
+	};
+	return $match->{decorator}->($line);
+}
+
+sub red    { return "\e[31m" . $_[0] . "\e[0m" }
+sub green  { return "\e[32m" . $_[0] . "\e[0m" }
+sub yellow { return "\e[33m" . $_[0] . "\e[0m" }
+sub purple { return "\e[35m" . $_[0] . "\e[0m" }
+sub cyan   { return "\e[36m" . $_[0] . "\e[0m" }
+
+sub file_start {
+	my ($line) = @_;
+	$line =~ s{^(...) (\S+)(.*?)$}{green($1) . ' ' . red($2) . green($3)}e;
+	return $line;
+}
+
+sub hunk_start {
+	my ($line) = @_;
+	$line =~ s{^(@@.+?@@)(.+)$}{green($1) . yellow($2)}e;
+	return $line;
+}
