@@ -1,0 +1,151 @@
+# -*- mode: shell-script -*-
+export code_root=
+export code_root_base=~/code
+
+function root() {
+  cd $code_root
+}
+
+# workon somename-web: set up environment for said project
+function workon() {
+
+  typeset project=$1
+
+  # If you provide a github URL, we'll clone that repo and set you up to workon it.
+  if [[ "$project" =~ .git$ ]]; then
+      typeset repo=$project
+      project=${project#*/}           # $project =~ s{^.*/}{};
+      project=${project%.git}         # $project =~ s{\.git$}{};
+      (cd $code_root_base; git clone $repo)
+  fi
+
+  if [ -d "$code_root_base/$project" ]; then
+    export code_root="$code_root_base/$project"
+    root
+  fi
+}
+
+# here's a hook for belden
+function _signal_environment_for_new_project() {
+  :
+}
+
+function signal_environment_for_new_project() {
+  _update_workon_env
+  _signal_environment_for_new_project
+}
+
+# tab completion for 'workon' - assumes your repos are under ~/code/, or you've set
+# up $code_root_base for yourself (see conf/bashrc-jshin for an example)
+function _complete_workon() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  opts="$(cd $code_root_base; echo *)"
+
+  # if you've typed "workon s-s<tab>", we should narrow down the list of options to
+  # just those projects that match qr{^s[^-]*-s.*} . _narrow_opts() does this.
+  declare -a narrowed_options
+  narrowed_options=$(_narrow_opts $cur "$opts" | sed 's/ /\n/g')
+
+  # if you've typed "workon s-s<tab>", we need to find the greatest-common-substring
+  # amongs all our $narrowed_options that matches qr{^s[^-]*-s.*} and pretend you typed
+  # that greatest-common-substring. _expand_word() does this.
+  expanded_word=$(_expand_word $cur "$opts")
+  COMPREPLY=($(compgen -W "${narrowed_options[*]}" -- ${expanded_word}))
+}
+complete -F _complete_workon workon
+
+function logwarn() {
+    typeset message=$1
+    [[ -z "$verbose" ]] && return
+    echo -e $message 1>&2
+}
+
+function _narrow_opts() {
+    typeset cur=$1
+    typeset pattern=$(echo $cur | sed 's/-/[^-]*?-/g')
+    shift
+    typeset i=0
+    declare -a options
+    for opt in $@; do
+        if echo $opt | grep -q -i -E "^$pattern[^-]*?"; then
+            logwarn "matched $pattern against $opt"
+            options[$i]=$opt
+            i=$(($i + 1))
+        fi
+    done
+    logwarn "returning: ${options[*]}"
+    echo ${options[*]}
+    return
+}
+
+function _expand_word() {
+  # Assume we were called as:
+  #    _expand_word 's-t' "somename-foo", "s-bar", "somename-test-resub", "somename-test-mockobject"
+  # The greatest-common-substring for 's-t' in the list is "somename-test". Our goal is to figure that out.
+  # The comments within here deal with this example set of args.
+
+  # First, grab the first arg ('s-t'), which is what we're tab completing on. *And* mutate our argument list
+  # by removing that first arg.
+  typeset cur=$1
+  shift
+
+  # Second, turn 's-t' into the $pattern qr{s[^-]*-t}. (n.b.: we only handle expanding
+  # words separated by hyphens. This is one of the two places that causes that restriction.)
+  typeset pattern=$(echo $cur | sed 's/-/[^-]*-/g')
+
+  # Third, look at our remaining args in the argument list, and narrow it down to just those things that match
+  # our pattern. We collect them into an arry named ${expansions}.
+  declare -a expansions
+  typeset i=0
+  for opt in $@; do
+    if echo $opt | grep -q -i -E "^$pattern"; then
+      expansions[$i]=$opt
+      i=$(($i + 1))
+    fi
+  done
+
+  # Here's where we initialize our return value
+  typeset longest_common_substring=''
+
+  # Finally, look at all candidate expansions and compare them against each other. We do this by
+  # turning 'somename-test-resub' and 'somename-test-mockobject' into lists that are split
+  # on '-'.
+  shopt -s nocasematch
+  for left_index in ${!expansions[@]}; do
+    for right_index in ${!expansions[@]}; do
+      if [[ $right_index -gt $left_index ]]; then
+        # Listify the two candidates. Another magic '-' here.
+        declare -a le; le=$(echo ${expansions[$left_index]}  | sed 's/-/\n/g')
+        declare -a re; re=$(echo ${expansions[$right_index]} | sed 's/-/\n/g')
+
+        # Read a word off of the leftern candidate, and compare it against the corresponsingly
+        # indexed entry off the rightern candidate. If the indices are the same and the word is
+        # the same, then we concatenate this word on to our growing longest-common-substring
+        # using another magic '-'.
+        for cli in ${!le[@]}; do
+          for cri in ${!re[@]}; do
+            if [[ $cli -eq $cri ]]; then
+              if [[ "${le[$cli]}" == "${re[$cri]}" ]]; then
+                longest_common_substring="$longest_common_substring-${le[$cli]}";
+              fi
+            fi
+          done
+        done
+      fi
+    done
+  done
+  shopt -u nocasematch
+
+  # Since I don't know how to do a join in bash, we need to remove the leading '-' that we stuck on
+  # when we found the first $longest_common_substring
+  longest_common_substring=$(echo $longest_common_substring | sed 's/^-//');
+
+  # The echo is is how we return our value to our caller
+  echo $longest_common_substring
+}
+
+if [ -e "$HOME/.bashrc-$USER" ]; then
+  . "$HOME/.bashrc-$USER"
+fi

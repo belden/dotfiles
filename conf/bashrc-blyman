@@ -1,0 +1,117 @@
+# -*- mode: shell-script -*-
+
+set __branch_base=base
+
+function re() {
+	for emacs in /usr/local/bin/emacs /usr/bin/emacs; do
+		if [ -e "$emacs" ]; then
+			$emacs "$@" &
+			return
+		fi
+	done
+}
+
+alias ll='ls -alF --color=tty'
+alias gh='history | grep'
+alias psg='ps -ef | grep'
+alias psa='ps auxf'
+
+alias cad='cat > /dev/null'
+alias view='vim -R'
+
+alias ascreen='screen -e^\`\` -x -RR'
+alias resource='. ~/.bashrc'
+
+function md() {
+  [[ -d $1 ]] || mkdir -p $1 || return
+  cd $1
+}
+
+function clear_environment () {
+	for var in PERL5LIB REPO_PATH PERL_LOCAL_LIB_ROOT; do
+		export ${var}=
+	done
+  \rm -f ~/.workon/env
+}
+
+# here's a hook for bashrc-multiproject::workon()
+function _signal_environment_for_new_project() {
+	for var in code_root $(rock env | perl -lne 'chomp; s/export //;push @o, $_;END{print "@o"}'); do
+		ec --setenv "$var="
+    # ${!var} is the accepted bash-ism for perl's strict-ref-defying ${$var}
+		ec --setenv "$var=${!var}"
+	done
+
+  ec --elisp "(find-file \"$code_root\")"
+}
+
+# complete 'type'
+function _complete_type() {
+  local cur prev opts
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+
+	typeset functions=$(declare -F | cut -f 3 -d ' ')
+	typeset aliases=$(alias | cut -f 2 -d ' ' | cut -f 1 -d =)
+	opts=$(echo -e "$functions\n$aliases" | grep -v '^$' | sort)
+
+  COMPREPLY=($(compgen -W "$opts" -- ${cur}))
+}
+complete -F _complete_type type
+
+function fixtestsshebang() {
+		for f in $(find . -name '*.t'); do
+				perl -i -pe 's{^#!/usr/bin/perl}{#!/usr/bin/env perl}' $f
+		done
+}
+
+function uniquify_environment_variable() {
+	typeset value=$1
+	shift
+	echo $value | perl -F: -ane 'print join q):), grep { ! $s{$_}++ } @F'
+}
+export PATH=$(uniquify_environment_variable "$HOME/bin:$PATH:$HOME/bin/development-tools")
+
+function dos2unix() {
+  typeset file=$1
+  perl -i -l -pe 'chomp;s/\r$//;' $file
+}
+
+function tobelden () { 
+  if [[ "${1-}" ]]; then
+    \rm $SSH_AUTH_SOCK > /dev/null 2>&1
+    kill $SSH_AGENT_PID
+    unset SSH_AUTH_SOCK
+    unset SSH_AGENT_PID
+    tobelden
+  else
+		. ~/.bashrc-start-ssh-agent
+		[[ -e ~/.workon/env ]] && . ~/.workon/env
+    alias sinit > /dev/null 2>&1 && sinit
+  fi
+}
+[[ -t 1 ]] && tobelden
+
+export PS1="\\u@\\h:\\W\\\$ "
+export EDITOR=vim
+export TERM=xterm
+
+function startdiff () {
+	local branch=$(git branch | awk '/^\*/{print $2}')
+  local start=$(git merge-base $__branch_base $branch)
+  local cmd="git diff --stat=120,100 ${start}...HEAD -M"
+	echo $cmd
+	eval $cmd
+  read r
+	cmd=${cmd// --stat=120,100/}
+  echo $cmd
+  eval $cmd
+}
+
+
+function gco() {
+    local branch=$1
+    shift
+    local my=${branch/origin\//}
+    git checkout --track -b $my $branch
+}
