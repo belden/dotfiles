@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ $# != 3 ]
+then
+    echo "usage: $0 <src-port> <dst-host> <dst-port>"
+    exit 0
+fi
+
+#TMP=`mktemp -d`
+PROXY=./$2:$3.proxy
+SENT=./$2:$3.sent
+RCVD=./$2:$3.rcvd
+trap 'rm -rf "$PROXY"' EXIT
+mkfifo -m 0600 "$PROXY"
+touch "$SENT" "$RCVD"
+sed 's/^/ => /' <"$SENT" &
+sed 's/^/<=  /' <"$RCVD" &
+nc -l -p "$1" <"$PROXY" | tee "$SENT" | nc "$2" "$3" | tee "$RCVD" >"$PROXY"

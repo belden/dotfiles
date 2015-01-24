@@ -1,0 +1,17 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+foreach my $dir ('./', glob('*')) {
+	next unless -d $dir;
+	next unless -d "$dir/.git";
+
+	chdir $dir;
+	my @out = `git @ARGV`;
+	if (scalar grep { $_ !~ /^#/ && $_ !~ /^nothing to commit/ } @out) {
+		print "====[ $dir ]====\n";
+		print @out;
+	}
+	chdir '..';
+}

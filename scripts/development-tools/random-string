@@ -1,0 +1,38 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Fcntl 'SEEK_CUR';
+
+GetOptions(
+	'newline!' => \(my $newline = 1),
+	'count=i' => \(my $number_of_words = 2),
+);
+
+sub systell { sysseek($_[0], 0, SEEK_CUR) } # thank you, perldoc -f sysseek
+
+sub random_string {
+	my ($number_of_words) = @_;
+	$number_of_words ||= 2;
+
+	open my $fh, '<', '/usr/share/dict/words'
+		or die "open /usr/share/dict/words: $!\n";
+
+	# jump to end of the file and find the size
+	sysseek $fh, 0, 2;
+	my $filesize = systell($fh);
+
+	# jump to a random location in the file, read some bytes, pull a word
+	my $get_random_word = sub {
+		sysseek $fh, int(rand($filesize+1)), 0;
+		my $buffer;
+		sysread $fh, $buffer, 1024;
+		my @words = split /\n/, $buffer;
+		return $words[rand($#words -2) +1];
+	};
+	return join '-', (map { $get_random_word->() } 1..$number_of_words);
+}
+
+printf "%s%s", random_string($number_of_words), ($newline ? "\n" : '');

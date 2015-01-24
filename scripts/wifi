@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo modprobe -r rtl8192ce rtl_pci rtlwifi rtl8192c_common mac80211 cfg80211
+sleep 2
+sudo modprobe -a rtl8192ce rtl_pci rtlwifi rtl8192c_common mac80211 cfg80211

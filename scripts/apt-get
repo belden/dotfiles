@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo /usr/bin/apt-get -y $@ && echo "apt-get -y $@" >> ~/.apt/apt-get.log

@@ -1,0 +1,37 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my $dir = shift;
+die "Usage: $0 <dir>\n" unless $dir && -d $dir;
+
+chdir $dir;
+
+write_file('Makefile.PL', <<'END');
+use strict;
+use warnings;
+use ExtUtils::MakeMaker;
+
+WriteMakefile(
+	NAME                => '',
+	AUTHOR              => q{Belden Lyman <blyman@mediamath.com>},
+	VERSION_FROM        => 'lib/', # ...
+	ABSTRACT            => '', # ...xs
+	($ExtUtils::MakeMaker::VERSION >= 6.3002
+		? ('LICENSE'=> 'perl')
+		: ()),
+	PL_FILES            => {},
+	PREREQ_PM => {
+	},
+	dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+	clean               => { FILES => 'translate-*' },
+);
+END
+
+sub write_file {
+	my ($name, $contents) = @_;
+	open my $fh, '>', $name or die "$name: $!\n";
+	print $fh $contents;
+	close $fh;
+}

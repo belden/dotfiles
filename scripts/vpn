@@ -1,0 +1,12 @@
+#!/bin/bash
+
+trap vpn::handler 0
+
+vpn::handler () {
+  sudo /etc/openvpn/update-resolv-conf
+}
+
+case $1 in
+  up) shift; config=$1; exec sudo openvpn --mute-replay-warnings --config ${HOME}/vpn/$1.ovpn ;;
+  start) shift; exec $0 up $@ ;;
+esac

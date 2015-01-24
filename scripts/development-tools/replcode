@@ -1,0 +1,51 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+GetOptions(
+	'c|code' => \(my $code = 0),
+	't|tests' => \(my $tests = 0),
+	'e|everything' => \(my $everything = 0),
+	'undo' => \(my $undo = 0),
+);
+
+die <<USAGE if ! scalar grep { $_ } ($code, $tests, $undo, $everything);
+replcode - replace strings in code
+
+Usage: replcode [ --code | --tests | --everything ] <old-string> <new-string>
+USAGE
+
+if ($undo) {
+	system(q{find . -name *.replcode | awk '{print "mv " $1 " " $1 }' | sed 's,.replcode$,,' | sh});
+	exit;
+}
+
+my ($original, $replacement) = @ARGV;
+
+my @findcode_args = (
+	($code ? () : '--nocode'),
+	($tests ? () : '--notests'),
+);
+
+chomp(my $cwd = `pwd`);
+open my $find, "code_root=$cwd findcode -e '$original' @findcode_args |"
+	or die "fork findcode: $!\n";
+my %did;
+while (<$find>) {
+	chomp;
+	my ($file) = split /:/, $_;
+
+	next if $file =~ m{/sql/};
+
+	next if $did{$file}++;
+
+	local @ARGV = ($file);
+	local $^I = ''; # enable inline editing; `perldoc perlvar' for more info
+	while (<>) {
+		s/$original/$replacement/g;
+		print;
+	}
+}

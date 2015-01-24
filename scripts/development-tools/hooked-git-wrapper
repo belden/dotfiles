@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# one of these gives me __gitdir and I don't care which
+source /etc/profile
+source /etc/bash_completion
+
+# figure out the full path to the hook for the git command we're running
+typeset hook="$(__gitdir)/hooks/$1.hook"
+hook=$(fp $hook)
+
+if [[ -e $hook ]]; then
+  # hook exists: run it
+  eval "$hook $@";
+
+  # bail out if hook's exit value was not 0
+  typeset hook_ok=$?
+  if [[ $hook_ok -ne 0 ]]; then
+    echo "$hook returned non-success status $hook_ok, refusing to run 'git $@'" 1>&2
+    exit $hook_ok
+  fi
+fi
+
+# hook exited with 0, or doesn't exist: run the real git command
+exec /usr/bin/git "$@"

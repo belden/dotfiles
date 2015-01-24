@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function _parseup() {
+  local args="$*"
+	args=${args// /|};
+	git status -s | grep -E "$args"
+}
+
+(
+	cd $code_root;
+	case $@ in
+			rm) shift; _parseup $@ | xargs -r git rm;;
+			-A) shift; _parseup $@ | xargs -r git add;;
+			*) _parseup $@;;
+	esac
+)

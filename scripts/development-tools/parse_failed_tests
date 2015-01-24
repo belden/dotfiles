@@ -1,0 +1,42 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my ($failed_tests) = (@ARGV);
+die "usage: $0 <file>\n" unless -f $failed_tests;
+
+# figure out how the failure email will talk about us
+my $me = sub {
+	open my $fh, "$ENV{HOME}/.gitconfig" or die "$ENV{HOME}/.gitconfig: $!\n";
+	while (<$fh>) {
+		next unless m/email = (\S+)/;
+		return $1;
+	}
+}->();
+
+# reorder the file, my failures on top
+{
+	open my $in, '<', $failed_tests;
+	my @records = ([]);
+	while (<$in>) {
+		chomp;
+		next unless $_;
+		push @{$records[-1]}, $_;
+		push @records, [] if /commit by/;
+	}
+	close $in;
+
+	open my $out, '+>', $failed_tests;
+
+	# I'm not proud of this.
+	@records =
+		map { $_->[0] }
+		sort { $b->[2] <=> $a->[2] || $a->[1] cmp $b->[1] }
+		map {	$_->[-1] =~ m{<([^>]+)>}; [$_, $1, $1 eq $me] }
+		grep { @$_ }
+		@records;
+
+	print $out join("\n", map { @$_, '' } @records);
+	print $out "\n";
+}

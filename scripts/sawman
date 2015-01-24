@@ -1,0 +1,18 @@
+#!/bin/bash
+
+sawfish::start() {
+  pkill metacity
+  exec /usr/bin/sawfish
+}
+
+sawfish::stop() {
+  pkill -9 sawfish
+  DISPLAY=:0.0 metacity
+}
+
+case $1 in
+  start) sawfish::start ;;
+  stop) sawfish::stop ;;
+  restart) sawfish::stop; sawfish::start ;;
+  *) : ;;
+esac

@@ -1,0 +1,75 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+# The intent of this is to apply two conflicting patches to a file, automatically
+# resolving conflicts by wrapping them up in if blocks somehow. I think I never quite
+# got this working usefully, so:
+die "Lame tool is lame";
+
+GetOptions(
+	'a|if=s' => \(my $if_file = ''),
+	'b|else=s' => \(my $else_file = ''),
+	'comment=s' => \(my $comment_char = '#### '),
+);
+
+die "usage: $0 --if file1 --else file2 [ --comment '#### ' ]\n"
+	unless 2 == grep { defined } $if_file, $else_file;
+
+open my $diff, "/usr/bin/diff -u -w $else_file $if_file |"
+	or die "fork diff: :$!\n";
+
+emit(scalar <$diff>) for 1..2; # re-emit header
+
+while (<$diff>) {
+	if (/^@@/) {
+		process($hunk, $comment);
+		$hunk = '';
+	}
+	$hunk .= $_;
+}
+process($hunk, $comment);
+
+exit;
+
+sub process {
+	my ($hunk, $comment) = @_;
+
+	my @hunk = split /\n/, $hunk;
+	my $last_context = 'common';
+
+	for (my $i = 0; $i < @hunk; $i++) {
+		my $line = $hunk[$i];
+		my $next = $hunk[$i+1];
+		last if ! defined $next;
+
+		my $this_context = context_for_line($line);
+		my $next_context = context_for_line($next);
+
+		if ($this_context ne $last_context) {
+			emit("$comment $if_file");
+			my $wrapper = +{
+				if => "if (\$file1) { $comment $if_file",
+				else => "} else { $comment $else_file",
+			}->{$this_context};
+	}
+}
+
+sub emit {
+	my ($line) = @_;
+	chomp $line;
+	print $line, "\n";
+}
+
+sub context_for_line {
+	my ($line) = @_;
+	my ($char) = $line =~ m{^(.)};
+	return +{
+		' ' => 'common',
+		'+' => 'if',
+		'-' => 'else',
+	}->{$char};
+}

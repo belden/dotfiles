@@ -8,26 +8,53 @@ scad::popd () {
   popd > /dev/null 2>&1
 }
 
+scad::edit() {
+  if [[ $editor -eq 0 ]]; then
+    emacs23 -nw ${1}
+  else
+    cat >> ${1}
+  fi
+}
+
+scad::commit() {
+  if [[ $commit -eq 0 ]]; then
+    git add ${1} > /dev/null 2>&1
+    git commit -m "scad ${1} $(date +%s)" > /dev/null 2>&1
+  fi
+}
+
+scad::mkdir_if_needed() {
+  if [[ ${1} =~ '/' ]]; then
+    dir=$(dirname ${1})
+		echo "mkdir -p -f ~/scad/${dir}"
+		mkdir -p ~/scad/${dir} > /dev/null 2>&1
+  fi
+}
+
 # here's how you do a getopts in shell
 verbose=1
-opts=`getopt -o v -- "$@"`;
+editor=1
+commit=0
+opts=`getopt -o vec -- "$@"`;
 eval set -- "$opts";
 while true; do
   case $1 in
     -v) verbose=0; shift ;;
+    -e) editor=0; shift ;;
+    -c) commit=1; shift ;;
     --) shift; break ;;
   esac
 done
 
 if [[ -z ${1} ]]; then
-  echo "Usage: $0 [-v] filename"
+  echo "Usage: $0 [-ve] filename"
   exit 1
 fi
 
 if stty | grep -q echo > /dev/null 2>&1; then
   stty echo
 else
-  [[ $verbose ]] || stty -echo
+  [[ $verbose -eq 0 ]] || stty -echo
     if [[ ! -d ~/scad ]]; then
       mkdir -p ~/scad
       scad::pushd scad
@@ -36,9 +63,10 @@ else
     fi
 
     scad::pushd ~/scad
-      cat >> ${1}
-      git add ${1} > /dev/null 2>&1
-      git commit -m "scad ${1} $(date +%s)" > /dev/null 2>&1
+      scad::mkdir_if_needed ${1}
+      scad::edit ${1}
+      scad::commit ${1}
+      stty echo
     scad::popd
   [[ $verbose ]] || stty echo
 fi

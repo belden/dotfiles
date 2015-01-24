@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# It's mv over ssh
+# smv user1@somehost:/path/to/file otheruser@someotherhost:
+
+tempdir=/tmp/$$
+mkdir $tempdir
+pushd $tempdir
+scp $1 .
+for file in *; do
+	scp $file $2
+done
+popd
+\rm -rf $tempdir

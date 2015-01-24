@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if echo $1 | grep -q \.pdf ; then
+  # convert .pdf to .txt using less if needs be
+  txt=$(echo $1 | sed 's/\.pdf/.txt/')
+  less $1 > $txt
+else
+  txt=$1
+fi
+
+# 1. collect paragraphs into long lines, removing indentation
+# 2. insert some paragraph markers to clean up from #1; clean up some unprintable characters
+# 3. remove some pagination stuff that annoys me, strip leading spaces
+# 4. turn bulleted lists back into bulleted lists
+perl -l00 -ne 's/^ +/ /;print;' $txt | \
+  perl -lpe 's/\x00\x00/\n\n/g;s//\n/g;s/[\xa0-\xff]+/ /g;s/\x00//g' | \
+  perl -lne '/Page.*\d+.*of.*\d+/ && next;s/^ //;print' | \
+  perl -lne 's/\* /\n  * /g;print' > $txt.convert
+
+mv $txt.convert $txt

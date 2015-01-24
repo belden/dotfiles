@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+
+use Cwd;
+use strict;
+use warnings;
+
+my ($file) = @ARGV;
+my $full_path = Cwd::abs_path($file);
+if (! -e $full_path) {
+	warn "$full_path: $!\n";
+	exit 1;
+}
+my $ifconfig = `/sbin/ifconfig eth0`;
+my ($ip) = $ifconfig =~ m{inet addr:(\S+)};
+my $sfp = $ENV{USER} . '@' . $ip . ':' . $full_path;
+
+print "$sfp\n";
+
+if (! fork) {
+  no warnings;
+  close STDERR;
+  close STDOUT;
+  if (open my $xclip, '| xclip') {
+    print $xclip $sfp;
+    close $xclip;
+  }
+}
+
+exit 0;
