@@ -34,8 +34,13 @@ function clear_environment () {
   \rm -f ~/.workon/env
 }
 
+function belden::mm::workon_hook() {
+  [[ -d extlib ]] && llib extlib INSTALL_BASE=/home/dev/src/adama/extlib
+}
+
 # here's a hook for bashrc-multiproject::workon()
 function _signal_environment_for_new_project() {
+  belden::mm::workon_hook
 	for var in code_root $(rock env | perl -lne 'chomp; s/export //;push @o, $_;END{print "@o"}'); do
 		ec --setenv "$var="
     # ${!var} is the accepted bash-ism for perl's strict-ref-defying ${$var}

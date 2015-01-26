@@ -1,3 +1,8 @@
 #!/bin/bash
 
+# git within emacs shouldn't use a pager - the buffer can
+#   be scrolled like any emacs buffer. Setting GIT_PAGER
+#   to /bin/cat silences a warning about the terminal not
+#   beign fully functional when running vc-git.el:vc-git-grep
+export GIT_PAGER=/bin/cat
 exec /usr/bin/emacs23 $@

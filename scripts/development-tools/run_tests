@@ -1,0 +1,69 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+GetOptions(
+  'method=s' => sub { $ENV{TEST_METHOD} = pop() },
+  'd|debug' => \(my $opt_debug = undef),
+  'v|verbose' => \(my $opt_verbose = undef),
+  'emacs' => \(my $emacs = ''),
+);
+
+chdir "/home/dev/src/adama" or die "chdir /home/dev/src/adama: $!\n";
+
+my $debug_flag = '';
+$debug_flag = '-d' if $opt_debug;
+
+my $verbose_flag = '2>/dev/null';
+$verbose_flag = '' if $opt_verbose;
+
+my @tests = map { find_test($_) } @ARGV;
+
+my @command = ('./script/db_template_wrapper.pl', 'perl', '-Ilib', $debug_flag, @tests, $verbose_flag);
+exec @command;
+die "couldn't exec: @command\n";
+
+sub find_test {
+  my ($test) = @_;
+
+  my $match;
+
+  if ($test =~ m{t/lib/(Adama/Test/.*)\.pm$}) {
+    (my $module_name = $1) =~ s{/}{::}g;
+    my ($found, @too_many) = run("git grep -n 'use $module_name;'");
+
+    if (@too_many) {
+      print STDERR "#### Found too many matchers for $test -> $module_name\n";
+      print STDERR map { "# $_" } ($found, @too_many);
+      exit 1;
+    }
+
+    ($match) = $found =~ m{(^[^:]+)};
+  } else {
+    # is this resolvable as a file on disk?
+    (my $filename = $test) =~ s{::}{/}g;
+
+    ($match) =
+      grep { -e $_ }
+      map { sprintf "$_", $filename }
+      ('%s', 't/%s', 't/%s.t');
+  }
+
+  return $match if $match;
+  die "no match for $_[0]\n" unless $match;
+}
+
+sub run {
+  my ($command) = @_;
+  return qx($command);
+}
+
+__END__
+
+export TEST_METHOD='t61.*'
+  ./script/db_template_wrapper.pl perl -Ilib t/test_StrategyValidation.t
+  ./script/db_template_wrapper.pl prove -lmv t/test_StrategyValidation.t t/test_StrategyCopy.t
+
