@@ -10,25 +10,27 @@ my ($code, $tests);
 my ($saw_code, $saw_tests);
 
 GetOptions(
-	'hide-comments!' => \(my $hide_comments = 1),
-	'code!' => sub { $saw_code = $code = pop() },
-	'tests!' => sub { $saw_tests = $tests = pop() },
-	'everything' => \(my $everything = 0),
-	'verbose' => \(my $verbose = 0),
-	'root=s' => \((my $root) = do {
-		chomp(my $dir = `run_bash_func __gitdir`);
-		$dir =~ s{\.git$}{};
-		if (! $dir) {
-			chomp($dir = `pwd`);
-		}
-		$dir;
-	}),
-	'near=s' => \(my $foreign_module),
+  'hide-comments!' => \(my $hide_comments = 1),
+  'code!' => sub { $saw_code = $code = pop() },
+  'tests!' => sub { $saw_tests = $tests = pop() },
+  'everything' => \(my $everything = 0),
+  'verbose' => \(my $verbose = 0),
+  'multiline' => \(my $multiline = 0),
+  'regex_flags=s' => \(my $regex_flags = ''),
+  'root=s' => \((my $root) = do {
+    chomp(my $dir = `run_bash_func __gitdir`);
+    $dir =~ s{\.git$}{};
+    if (! $dir) {
+      chomp($dir = `pwd`);
+    }
+    $dir;
+  }),
+  'near=s' => \(my $foreign_module),
 );
 
 if ($foreign_module) {
-	chomp($root = `whichpm $foreign_module`);
-	$root =~ s{^(.*/).*\.pm$}{$1};
+  chomp($root = `whichpm $foreign_module`);
+  $root =~ s{^(.*/).*\.pm$}{$1};
 }
 
 # "findcode foo" --> "findcode --code --tests foo"
@@ -40,57 +42,139 @@ my ($search_regex) = @ARGV;
 $search_regex =~ s{(?<!\\)/}{\\/}g;
 die "Usage: $0 <search>\n" unless $search_regex;
 
-my $match = build_matcher($search_regex);
+my $match = build_matcher($search_regex, $regex_flags);
 
 my $find_fh = find_files(
-	include_code => $code,
-	include_tests => $tests,
-	include_everything => $everything,
-	verbose => $verbose,
-	root => $root,
+  include_code => $code,
+  include_tests => $tests,
+  include_everything => $everything,
+  verbose => $verbose,
+  root => $root,
 );
 
 while (my $file = <$find_fh>) {
-	chomp $file;
-	local @ARGV = ($file);
-	local $.;
-	while (<>) {
-		next if /^\s*#/ && $hide_comments && $file !~ /\.css$/;
-		print "$file:$.:$_" if $match->();
-	}
+  chomp $file;
+  local @ARGV = ($file);
+
+  if ($multiline) {
+    local $/ = undef;
+    local $_ = <>;
+    if ($match->()) {
+      # now find the line number where this occurs
+      my $pos = pos($_);
+      my $string = substr($_, 0, $pos);
+      my $line = () = $string =~ m{\n}g;
+      print "$file:$line:\n";
+    }
+  } else {
+    local $.;
+    while (<>) {
+      next if /^\s*#/ && $hide_comments && $file !~ /\.css$/;
+      print "$file:$.:$_" if $match->();
+    }
+  }
 }
 
 exit 0;
 
 sub my_log {
-	my ($string) = @_;
-	open my $fh, '>>', "$ENV{HOME}/.findcode-log";
-	print $fh "$string\n";
-	close $fh;
+  my ($string) = @_;
+  open my $fh, '>>', "$ENV{HOME}/.findcode-log";
+  print $fh "$string\n";
+  close $fh;
 }
 
 sub find_files {
-	my (%args) = @_;
+  my (%args) = @_;
 
-	my $root = $args{root};
-	my $find_command = "/usr/bin/find -L $root -type f -not -name '.*' -not -name '*~' -not -path '*/.git/*' -not -path '*/local/*'";
-	$find_command .= " -not -path '$root/lib/*'" if ! $args{include_code};
-	$find_command .= " -not -path '$root/t/lib/*'" if ! $args{include_tests};
+  my $root = $args{root};
+  my $find_command = join(' ',
+    "/usr/bin/find",
+    "-L $root",
+    "-type d -name .git -prune -o",
+    "-type d -name local -prune -o",
+    "-type d -name extlib -prune -o",
+    "-type d -name inc -prune -o",
+    "-type f",
+    "-not -name '.*'",
+    "-not -name '*~'",
+    "-not -name cpanm",
+    # "-not -path '*/.git/*'",
+    # "-not -path '*/local/*'",
+    # "-not -path '*/extlib/*'",
+  );
+  $find_command .= " -not -path '$root/lib/*'" if ! $args{include_code};
+  $find_command .= " -not -path '$root/t/lib/*'" if ! $args{include_tests};
 
-	if (!$args{include_everything}) {
-		$find_command .= join ' ', map { " -not -path '*/$_/*'" } qw(scripts media sql);
-	}
+  if (!$args{include_everything}) {
+    $find_command .= join ' ', map { " -not -path '*/$_/*'" } qw(scripts media sql);
+  }
 
-	print "running: $find_command\n" if $args{verbose};
+  print "running: $find_command\n" if $args{verbose};
 
-	open my $fh, "$find_command|" or die "fork find: $!\n";
-	return $fh;
+  open my $fh, "$find_command|" or die "fork find: $!\n";
+  return $fh;
 }
 
 sub build_matcher {
-	my ($search) = @_;
-	local $@;
-	eval "qr/$search/; 1";
-	$search = qr/\Q$search\E/ if $@;
-	return eval "sub { m{$search} }";
+  my ($search, $regex_flags) = @_;
+  local $@;
+  eval "qr/$search/; 1";
+  $search = qr/\Q$search\E/ if $@;
+  $regex_flags ||= '';
+  return eval "sub { m{$search}$regex_flags }";
 }
+
+__END__
+
+=pod
+
+=head1 COOKBOOK
+
+=head2 Find inadvertently declared static variables
+
+In some versions of Perl, the following syntax:
+
+  ```perl
+    sub get_something {
+      my $foo = $config->{blah} if $something;
+    }
+  ```
+
+will create $foo as a static variable to get_something() - that is, its value is only set once. This
+leads to difficult to diagnose bugs, where things just aren't behaving properly.
+
+Solution:
+
+  findcode --multiline --regex_flags gsm '(?<!foreach\s)(my [\$%@][^;]+\n*[^;]*?\b(?:if|unless)\b.*?;)'
+
+Output:
+
+  /home/code/lib/Project/Upload:6883
+  /home/code/lib/Project/Request.pm:5363
+  /home/code/lib/Project/User.pm:9130
+
+Discussion:
+
+  --multiline: required in order to slurp the entire file into a single scalar, rather than to process
+               the file line-by-line (as is the default)
+
+  --regex_flags gsm: the compiled regex needs to act across the entire file (/g), should slurp newlines
+               into . (/s), and should treat the file as multiple lines by allowing ^ and $ to match
+               inter-string boundaries (/m)
+
+  big hairy regex:
+
+     (?<!foreach\s)          # ignore lines like `foreach my $foo (...) {`
+     (                       # start $1 capture
+       my [\$%@]             #   look for a `my $`, `my @`, or `my %` - i.e. a variable declaration
+      [^;]+                  #   followed by anything that's not a semicolon
+      \n*                    #      maybe an optional number of newlines
+      [^;]*?                 #      maybe followed by a non-greedy zero-or-more "anything-but-semicolon" sequence
+      \b(?:if|unless)\b      #   with an `if` or `unless`
+      .*?                    #      and the `if` or `unless` condition
+      ;                      #   with a final terminating semicolon
+     )                       # end $1 capture
+
+
+=end
