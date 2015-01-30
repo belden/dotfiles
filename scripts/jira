@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+my ($action, $target);
+
+$ARGV[0] =~ s{^([^-])}{-${1}};
+
+GetOptions(
+  'start=s' => sub { $action = 'start'; $target = pop() },
+);
+
++{
+  start => \&do_start,
+  help  => sub { die "bad usage\n" },
+}->{$action || 'help'}->($target);
+
+sub jira_dir { return "$ENV{HOME}/jira/" . shift() }
+
+sub do_start {
+  my ($target) = @_;
+
+  $target = uc($target);
+
+  my $target_dir = jira_dir($target);
+  mkdir $target_dir if ! -d $target_dir;
+
+  unlink(jira_dir('current'));
+  system('/bin/ln', '-s', $target_dir, jira_dir('current'));
+}
+
+__END__
+
+=pod
+
+little tool for mainting notes directories
+
+=cut
+
