@@ -1,0 +1,62 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+GetOptions(
+   'vmhost=s' => \(my $vmhost = 't1-dev'), # from your ~/.ssh/config
+);
+
+my ($command, @too_many) = @ARGV;
+die "Don't know how to handle: $command @too_many\n" if @too_many;
+die "Usage: $0 [up | down | ssh]\n" if ! $command;
+
+# dispatch action or complain
+(
+  +{
+    up => sub { _make('vagrant.up') },
+    down => sub { _make('vagrant.suspend') },
+#    ssh => sub { do_ssh(vmhost => $vmhost, recurse => 1) },
+  }->{$command} || sub { die "$command: don't know what you want me to do!\n" }
+)->();
+
+# wrap chdir-and-make-and-chdir-back
+sub _make {
+  my ($make_target) = @_;
+
+  chomp(my $owd = `pwd`);
+
+  my @candidates = (
+    "$ENV{HOME}/code/platform-api-automation",
+    "$ENV{HOME}/src/platform-api-automation",
+  );
+  my ($dir) = grep { -d $_ } @candidates; 
+
+  if (! $dir) {
+    my $pretty_dirs = join "\n", map { "\t$_" } @candidates;
+    die "couldn't find platform-api-automation, looked under\n$pretty_dirs\n";
+  }
+
+  chdir $dir;
+  system('make', $make_target);
+  chdir $owd;
+}
+
+# if you try to ssh into a down machine, we'll try to bring it up for you
+sub do_ssh {
+  my (%args) = @_;
+
+  my $ret = system('ssh', $args{vmhost});
+
+  if ($ret >> 8  == 255) { # maybe ssh failed because the vmhost is down
+    if ($args{recurse}) {
+      _make('vagrant.up');
+      do_ssh(%args, recurse => 0);
+      print "brought up VM just for you, maybe you should `$0 down` now\n";
+    } else {
+      die "Couldn't ssh in to t1-dev and couldn't bring up vm, bailing out\n";
+    }
+  }
+}
