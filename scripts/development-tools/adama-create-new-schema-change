@@ -1,0 +1,47 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+open my $log, '>>', '/tmp/belden.log';
+print $log "$0 @ARGV\n";
+close $log;
+
+GetOptions(
+  'name=s' => \(my $name = ''),
+  emacs => \(my $emacs),
+);
+
+die "Usage: $0 --name <name>\n" if ! $name;
+
+my $root = "$ENV{HOME}/src/adama";
+die "No checkout found in $root\n" if ! -d $root;
+
+$name = lc($name);
+$name =~ s{\.sql$}{};
+$name =~ s{[^a-z-]}{_}g;
+
+chomp(my $datestamp = `date +%Y%m%d`);
+my $target;
+for (my $number = 0; ; $number++) {
+  my $candidate = sprintf '%s/patch_%s%02d_%s.sql', $root, $datestamp, $number, $name;
+  if (! -e $candidate) {
+    $target = $candidate;
+    last;
+  }
+
+  die "Yikes, tried $number times and couldn't find an unused file, something must be busted!\n"
+    if $number > 15;
+}
+
+open my $fh, '>', $target or die "create $target: $!\n";
+print $fh <<TEMPLATE;
+-- JIRA TICKET NUMBER HERE
+--
+put your SQL here, yo
+TEMPLATE
+close $fh;
+
+print $target, ($emacs ? '': "\n"); # for emacs, don't show a newline

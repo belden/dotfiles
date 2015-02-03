@@ -1,0 +1,399 @@
+;; -*- mode: lisp; -*-
+(add-to-list 'load-path "~/.elisp")
+(require 'belden-func)
+(require 'scott-window)
+(require 'belden-buffers)
+(require 'belden-navigation)
+(require 'belden-typing)
+(require 'belden-editing)
+(require 'belden-editor-layout)
+(require 'belden-ide)
+(require 'belden-generic)
+(require 'belden-diffing)
+(require 'belden-macros)
+(require 'belden-uselines)
+(require 'belden-birds-eye)
+(require 'belden-editor-toggles)
+(require 'thrift-mode)
+(require 'belden-console)
+
+(require 'git-wrappers)
+(require 'magit)
+(require 'vc-git)
+
+(require 'yaml-mode)
+
+(require 'puppet-mode)
+(add-to-list 'auto-mode-alist '("\\.pp\\'" . puppet-mode))
+
+;; C-F8 and C-q F8 will toggle a project navigator on/off
+(require 'nav)
+(nav-disable-overeager-window-splitting)
+(global-set-key [C-f8] 'nav-toggle)
+(global-set-key (kbd "s-a <f8>") 'nav-toggle)
+;; By default, nav.el hides files that start with a leading dot, such as .rock.yml
+;; This is a customisation of the default value for nav-boring-file-regexps to remove
+;; that restriction.
+(custom-set-variables
+'(nav-boring-file-regexps (quote ("^[.]$" "~$" "[.]elc$" "[.]pyc$" "[.]o$" "[.]bak$" "^_MTN$" "^blib$" "^CVS$" "^RCS$" "^SCCS$" "^_darcs$" "^_sgbak$" "^autom4te.cache$" "^cover_db$" "^_build$"))))
+
+;; colorize compilation buffers, I've wanted this for so long!
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (toggle-read-only)
+  (ansi-color-apply-on-region (point-min) (point-max))
+  (toggle-read-only))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+(require 'mmm-mode)
+(setq mmm-global-mode 'maybe)
+;; Set up for multi-mode those files that are .mhtml, .md, .mh, .html
+(add-to-list 'auto-mode-alist '("\\.\\(mhtml\\|md\\|mh\\|html\\)\\'" . html-mode))
+(mmm-add-mode-ext-class 'html-mode "\\.\\(mhtml\\|md\\|mh\\|html\\)\\'" 'mason)
+(mmm-add-mode-ext-class 'belden-cperl-mode "\\.\\(mhtml\\|md\\|mh\\|html\\)\\'" 'mason)
+;; set up autohandlers for multi-mode too
+(add-to-list 'auto-mode-alist '("autohandler" . html-mode))
+(mmm-add-mode-ext-class 'html-mode "autohandler" 'mason)
+(mmm-add-mode-ext-class 'belden-cperl-mode "autohandler" 'mason)
+(setq mmm-submode-decoration-level 1)
+
+;; .yml and .yaml are yaml-mode, yo
+(add-to-list 'auto-mode-alist '("\\.\\(yml\\|yaml\\)" . yaml-mode))
+
+;; track changes to window layouts: C-c <left> will undo, C-c <right> returns to most
+;; recent configuration
+(winner-mode 1)
+
+;; store my backup files in ~/.elisp/backups please
+(setq backup-directory-alist `(("." . "~/.elisp/backups")))
+
+;; turn off new users modes.
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+
+;; emulate vim
+;(add-to-list 'load-path "~/.elisp/evil")
+;(require 'evil)
+;(global-set-key [f2] '(lambda() (interactive) (evil-mode) (global-undo-tree-mode)))
+
+;; loading evil sets (global-undo-tree-mode 't). Turn it off.
+;(global-undo-tree-mode 'nil)
+
+;; quickly jump to lisp functions
+(require 'find-func)
+
+;; hide menu bar and tool bar
+(require 'menu-bar)
+  (menu-bar-mode 0)
+(require 'tool-bar)
+  (tool-bar-mode 0)
+
+;; setdefault window size
+(setq default-frame-alist (append (list
+  '(width . 110)
+	'(height . 67)
+  '(vertical-scroll-bars . right)
+  '(font . "-misc-fixed-medium-r-normal--20-200-75-75-c-100-iso8859-1"))
+  default-frame-alist))
+
+(setq-default visible-bell t)
+(blink-cursor-mode -1)
+(setq blink-matching-delay 0.1)
+
+; white on black text
+(belden-set-background)
+
+;; Case-insensitive tab completion.
+(setq completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
+(setq read-buffer-completion-ignore-case t)
+
+(setq inhibit-splash-screen t)      ; No splash screen either
+(setq inhibit-startup-message    t) ; Don't want any startup message
+(setq search-highlight           t) ; Highlight search object
+(setq query-replace-highlight    t) ; Highlight query object
+(setq mouse-sel-retain-highlight t) ; Keep mouse high-lightening
+
+;; search for word with [f2], make backspace and delete work too
+(require 'tinysearch)
+(define-key isearch-mode-map [delete] 'isearch-delete-char)
+(define-key isearch-mode-map [backspace] 'isearch-delete-char)
+(define-key isearch-mode-map (kbd "C-o") 'isearch-occur) ; when searching, C-o shows occurences
+(setq tinysearch-:wrap-flag t)
+
+;; hide lines matching regexps
+(require 'hide-lines);
+
+;; add line numbers to buffer
+(require 'setnu)
+(setq setnu-line-number-format "%3d  ")
+;; and column numbers
+(require 'simple)
+(column-number-mode)
+
+;; Make buffer-names uniquify better
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward)
+
+;; start server for emacsclient
+(server-start)
+
+; place to store currently selected bookmark
+(require 'belden-bookmarks)
+(setq bookmark-save-flag 'nil)
+(defvar belden-current-bookmark 'nil)
+
+; Set up the editor: color and size
+;(belden-set-frame-properties)
+(require 'diff-mode)
+(require 'belden-diff-mode)
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(compilation-info ((((class color) (min-colors 88) (background dark)) (:foreground "lightpink" :weight bold :underline nil))))
+ '(cperl-array-face ((t (:foreground "gold"))))
+ '(cperl-hash-face ((t (:foreground "firebrick1"))))
+ '(diff-added ((t (:foreground "dark turquoise"))))
+ '(diff-file-header ((t (:foreground "firebrick" :weight bold))))
+ '(diff-function ((t (:inherit diff-context-face :foreground "DarkGoldenrod1"))))
+ '(diff-header ((((class color) (background dark)) (:foreground "forest green"))))
+ '(diff-index ((t (:inherit diff-file-header-face :underline t))))
+ '(diff-refine-change ((t (:background "gray30"))))
+ '(diff-removed ((t (:foreground "violet"))))
+ '(font-lock-comment-face ((t (:foreground "chocolate1"))))
+ '(trailing-whitespace ((((class color) (background dark)) (:background "grey30")))))
+
+;; set up custom highlighting for X11 and console emacs
+(if (window-system)
+	(custom-set-faces
+	 '(magit-item-highlight ((t (:inherit nil :background "grey20"))))    ;; X11 make magit highlighting close to black but distinguishable
+	 '(magit-log-sha1 ((((class color) (background dark)) (:foreground "yellow"))))
+	 )
+	(custom-set-faces
+	 '(magit-item-highlight ((t (:inherit nil :background "black"))))    ;; console emacs just avoid the offensive default green (seriously wtf)
+	 '(magit-log-sha1 ((t (:inherit nil :foreground "yellow"))))
+	))
+
+;; highlight long lines
+(require 'highlight-beyond-fill-column)
+(setq default-fill-column 150)
+(defface highlight-beyond-fill-column-my-face
+  '((((class color)
+      (background dark))
+     (:foreground "DarkSeaGreen2" :bold t))
+    (((class color)
+      (background light))
+     (:foreground "ForestGreen" :bold t))
+    (t
+     ()))
+  "*Face used by highlight-beyond-fill-column")
+(setq highlight-beyond-fill-column-face 'highlight-beyond-fill-column-my-face)
+(setq highlight-beyond-fill-column-in-modes
+      '("perl-mode"
+        "belden-cperl-mode"
+        "cperl-mode"))
+
+;; Show trailing whitespace in normal buffers
+(setq-default show-trailing-whitespace nil)
+
+(require 'auto-save)
+(setq-default auto-save-directory "~/.autosaves/")
+
+(require 'comint)
+(setq confirm-kill-emacs 'y-or-n-p)
+
+;; Handle tabs in the Shutterstock fashion (leave 'em in)
+;; make them pretty to my eyes (% 2)
+(setq-default indent-tabs-mode belden-toggle-hard-tabs-piddle)
+(setq-default tab-width 2)
+
+;; various editor toggles
+(global-set-key [(super a) ?t ?b] 'belden-toggle-scroll-bars) ;; s-a tb: toggle scroll bars on and off
+(global-set-key [(super a) ?t ?s] 'belden-toggle-server)    ;; s-a ts: toggle whether the server is on or off
+(global-set-key [(super a) ?t ?t] 'belden-toggle-tabs)      ;; s-a tt: toggle between hard and soft tabs
+
+;; fix some colors
+(set-mouse-color "white")
+(set-cursor-color "white")
+
+;; iswitchb
+(iswitchb-mode)
+(add-hook 'iswitchb-define-mode-map-hook 'iswitchb-my-keys)
+(defun iswitchb-my-keys ()
+ "Add my keybindings for iswitchb."
+ (define-key iswitchb-mode-map " " 'iswitchb-next-match)
+ (define-key iswitchb-mode-map "\C-f" 'iswitchb-find-file)
+ (define-key iswitchb-mode-map "\C-o" 'belden-iswitchb-otherwindow)
+ (define-key iswitchb-mode-map "\C-j" 'iswitchb-exit-minibuffer))
+
+;; Kill whole line with single C-k when at beginning of line
+(setq kill-whole-line t)
+
+; Typing bindings
+(global-set-key "\C-g" 'belden-keyboard-quit)
+(global-set-key "\C-k" 'belden-kill-line-or-region)
+(global-set-key [(super k)] 'belden-kill-whole-line)
+(global-set-key [(super a) ?u ?b] 'belden-update-buffers)
+
+; region management
+(global-set-key (kbd "s-SPC") 'set-mark-command) ; super-space selects
+
+; needed for C-mouse-1 to work as belden-follow-mouse
+(global-unset-key [C-down-mouse-1])
+
+;; HOT KEYS
+(global-set-key [super f2] 'global-linum-mode)
+(global-set-key [f3] '(lambda () (interactive) (set-mark-command t)))
+(global-set-key [C-mouse-1] 'belden-follow-mouse)
+(global-set-key [f4] 'belden-follow)
+(global-set-key [(super f4)] 'find-tag)
+(global-set-key [f5] 'belden-run-rock)
+(global-set-key [(shift f5)] 'belden-run-perl-file)
+(global-set-key [f6] 'belden-next-error-recenter)
+(global-set-key [(shift f6)] 'belden-previous-error-recenter)
+(global-set-key [f7] 'scott-window-mdi-maximize-restore-toggle)
+(global-set-key [f8] 'belden-hide-this-buffer)
+(global-set-key [(super f8)] 'belden-kill-this-buffer)
+(global-set-key [(shift f8)] 'belden-kill-other-buffer)
+(global-set-key [f9] 'belden-perl-debug)
+(global-set-key [M-f9] 'perldb)
+(global-set-key [f10] 'belden-comment-dwim)
+(global-set-key [f11] 'other-window)
+(global-set-key [f12] 'font-lock-mode)
+(global-set-key [(super f12)] 'belden-garbage-mode)
+(global-set-key [(super l)] 'belden-garbage-mode)
+
+; Buffer management
+(global-set-key "\C-x\C-b"   'electric-buffer-list)
+(global-set-key "\C-j"       'iswitchb-buffer)
+(global-set-key [(super a) ?b ?b] 'belden-bookmark-jump)
+(global-set-key [(super a) ?b ?m] 'belden-bookmark)
+
+;; C-q is mapped to s-a, so quoted-insert needs a new keybinding
+(global-unset-key "\C-q")
+(global-set-key [(super q)] 'quoted-insert)
+(global-set-key "\C-cq"    'quoted-insert)
+(global-set-key "\C-c\C-q" 'quoted-insert)
+(global-set-key (kbd "C-c s-a") 'quoted-insert)
+(global-set-key (kbd "<backtab>") '(lambda () (interactive) (insert "\t")))
+(global-set-key (kbd "s-a <tab>") '(lambda () (interactive) (insert "\t")))
+(global-set-key (kbd "s-a <return>") '(lambda () (interactive) (insert "\n")))
+
+; Navigation keys
+(setq line-move-visual nil) ; move by logical lines, not visual lines
+(global-set-key [M-up] 'belden-goto-matching-char)
+(global-set-key [M-down] 'belden-goto-matching-char)
+(global-set-key [C-up] '(lambda () (interactive) (previous-line 5)))
+(global-set-key [C-down] '(lambda () (interactive) (next-line 5)))
+(global-set-key [C-left] 'belden-backward-word)
+(global-set-key [C-right] 'belden-forward-word)
+(global-set-key [kp-home]  'belden-goto-beg)
+(global-set-key [home]     'belden-goto-beg)
+(global-set-key [begin]    'belden-goto-beg)
+(global-set-key [kp-end]   'belden-goto-end)
+(global-set-key [end]      'belden-goto-end)
+(global-set-key "\M-g" 'set-mark-and-goto-line)
+(global-set-key [<select>] 'move-end-of-line)
+
+(global-set-key [s-up] '(lambda () (interactive) (copy-from-above-or-below 1)))
+(global-set-key [C-s-up] '(lambda () (interactive) (copy-from-above-or-below)))
+(global-set-key [s-down] '(lambda () (interactive) (copy-from-above-or-below 1 1)))
+(global-set-key [C-s-down] '(lambda () (interactive) (copy-from-above-or-below 'nil 1)))
+
+;; {Alt-Shift arrows} and {Alt-Super arrows} will either move the selected region of
+;; text in the direction pressed, or if no region is active they'll switch you between
+;; different windows (Vim users, read "splits").
+(require 'belden-scootch)
+(global-set-key [M-s-up] 'belden-scootch-up-or-find-win-up)
+(global-set-key [M-s-down] 'belden-scootch-down-or-find-win-down)
+(global-set-key [M-s-left] 'belden-scootch-left-or-find-win-left)
+(global-set-key [M-s-right] 'belden-scootch-right-or-find-win-right)
+(global-set-key [M-S-up] 'belden-scootch-up-or-find-win-up)
+(global-set-key [M-S-down] 'belden-scootch-down-or-find-win-down)
+(global-set-key [M-S-left] 'belden-scootch-left-or-find-win-left)
+(global-set-key [M-S-right] 'belden-scootch-right-or-find-win-right)
+
+;; tab completion on steroids
+(setq hippie-expand-try-functions-list (list
+  'try-expand-dabbrev-visible
+  'try-expand-dabbrev
+  'try-expand-dabbrev-all-buffers
+  'try-expand-dabbrev-from-kill
+  'try-complete-file-name-partially
+  'try-complete-file-name
+))
+
+; make isearch a bit smarter (C-t toggles regexp searching)
+(add-hook 'isearch-mode-hook
+          (function
+           (lambda ()
+             (define-key isearch-mode-map "*" 'belden-isearch-star-triggers-regex-mode)
+             (define-key isearch-mode-map "\C-h" 'isearch-mode-help)
+             (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
+             (define-key isearch-mode-map "\C-c" 'isearch-toggle-case-fold)
+             (define-key isearch-mode-map "\C-j" 'isearch-edit-string))))
+
+;;;;;;; IDE stuff
+;; Use belden-cperl-mode instead of the default perl-mode
+(autoload 'belden-cperl-mode "belden-cperl-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.\\([pP][Llm]\\|[tT]\\|mhtml\\|html\\|m[hd]\\)\\'" . belden-cperl-mode))
+(add-to-list 'interpreter-mode-alist '("perl" . belden-cperl-mode))
+(add-to-list 'interpreter-mode-alist '("perl5" . belden-cperl-mode))
+(add-to-list 'interpreter-mode-alist '("miniperl" . belden-cperl-mode))
+
+(add-to-list 'auto-mode-alist '("\\.thrift\\'" . thrift-mode))
+
+(global-set-key "\M-\C-s"  'belden-findcode) ;; normal search is ctrl+s. This is "search the codebase"
+(global-set-key "\M-n"     'belden-toggle-hide-subs)
+(global-set-key [(super left)] 'vc-diff)
+(global-set-key [(super ,)] 'belden-ensure-trailing-comma)
+(global-set-key [(super -)] 'belden-smaller-font)
+(global-set-key [(super =)] 'belden-bigger-font)
+(global-set-key [(super a) ?a ?h] 'belden-apply-hunk)
+(global-set-key [(super a) ?a ?f] 'belden-apply-file)
+(global-set-key [(super a) ?b ?e] 'belden-birds-eye)
+(global-set-key [(super a) ?t ?e] 'belden-turtles-eye)
+(global-set-key [(super a) ?c ?s] 'belden-comparesub)
+(global-set-key [(super a) ?d ?b] 'belden-insert-dbsingle)
+(global-set-key [(super a) ?d ?s] 'belden-insert-die-signal-handler)
+(global-set-key [(super a) ?d ?w] 'delete-trailing-whitespace)
+(global-set-key [(super a) ?e ?h] 'belden-insert-end-here)
+(global-set-key [(super a) ?f ?d] 'vc-diff)
+(global-set-key [(super a) ?e ?h] 'belden-insert-end-here)
+(global-set-key [(super a) ?e ?r] 'eval-region)
+(global-set-key [(super a) ?f ?c] 'belden-findcallers)
+(global-set-key [(super a) ?m ?p] 'belden-make-perl-module)
+(global-set-key [(super a) ?m ?t] 'belden-make-testfiles)
+(global-set-key [(super a) ?m ?x] 'belden-make-executable)
+(global-set-key [(super a) ?p ?c] 'belden-perl-check)
+(global-set-key [(super a) ?p ?d] 'cperl-perldoc)
+(global-set-key [(super a) ?p ?m] 'belden-cperl-mode)
+(global-set-key [(super a) ?p ?s] 'belden-perl-tidy-sub)
+(global-set-key [(super a) ?p ?t] 'belden-perl-tidy)
+(global-set-key [(super a) ?o ?p] 'belden-open-perl-module)
+(global-set-key [(super a) ?r ?f] 'belden-revert-file)
+(global-set-key [(super a) ?r ?h] 'belden-revert-hunk)
+(global-set-key [(super a) ?r ?n] 'belden-random-number)
+(global-set-key [(super a) ?r ?s] 'belden-random-string)
+(global-set-key [(super a) ?r ?t] 'belden-readable-testoutput)
+(global-set-key [(super a) ?s ?r] 'belden-shell-replace)
+(global-set-key [(super a) ?s ?t] 'belden-stack-trace)
+(global-set-key [(super a) ?s ?u] 'belden-sort-use-lines)
+(global-set-key [(super a) ?s ?x] 'belden-save-and-make-executable)
+(global-set-key [(super a) ?t ?q] 'belden-toggle-quotes)
+(global-set-key [(super a) ?t ?r] 'toggle-read-only)
+(global-set-key [(meta \()] 'belden-toggle-vertical-horizontal-list)
+(global-set-key [(meta 9)] 'belden-toggle-vertical-horizontal-list)
+
+;; git stuff
+(global-set-key [(super a) ?g ?s] 'magit-status)
+(global-set-key [(super a) ?g ?g] 'vc-git-grep)
+
+;; macros
+(global-set-key [(meta \")] 'belden-toggle-kbd-macro-recording)
+(global-set-key [(meta \')] 'call-last-kbd-macro)
+(global-set-key (kbd "s-'")    'belden-edit-kbd-macro)
+(global-set-key (kbd "C-s-'")  'name-last-kbd-macro)
+(global-set-key (kbd "M-s-'")  'belden-assign-to-last-kbd-macro)
