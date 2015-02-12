@@ -26,7 +26,7 @@ $name =~ s{[^a-z-]}{_}g;
 chomp(my $datestamp = `date +%Y%m%d`);
 my $target;
 for (my $number = 0; ; $number++) {
-  my $candidate = sprintf '%s/patch_%s%02d_%s.sql', $root, $datestamp, $number, $name;
+  my $candidate = sprintf '%s/sql/patch_%s%02d_%s.sql', $root, $datestamp, $number, $name;
   if (! -e $candidate) {
     $target = $candidate;
     last;

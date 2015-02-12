@@ -4,25 +4,36 @@ use strict;
 use warnings;
 
 use Getopt::Long;
+
 my $mode = 'compare-subroutines';
 GetOptions(
 	'as-method-signature' => sub { $mode = 'method-signature' },
+  'color' => \(my $color = 0),
 );
 
 $|++;
 my ($subname) = @ARGV;
 $subname or die "gotta give me something to look for\n";
 
+my $outfh;
+if ($color) {
+  open $outfh, '| pygmentize -l perl';
+  $outfh = \*STDOUT if $!;
+} else {
+  $outfh = \*STDOUT;
+}
+
 +{
-	'compare-subroutines' => \&compare_subroutines,
+	'compare-subroutines' => sub { compare_subroutines($outfh, @_) },
 	# 'method-signature' => sub { ... },
 }->{$mode}->($subname);
 
-# TODO: use Shutterstock::Lingua::Multilingual::EditDistance::edit_distance to
+# TODO: use edit_distance to
 # calculate a "Refactorability" score between two methods
 
 sub compare_subroutines {
-	my ($subname) = @_;
+	my ($outfh, $subname) = @_;
+
 	foreach my $result (`findcode "^\\s*sub +\\b$subname\\b"`) {
 		my ($file_name, $line_number) = split /:/, $result;
 		if (open my $fh, '<', $file_name) {
