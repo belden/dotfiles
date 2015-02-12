@@ -1,0 +1,107 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my $retry_file;
+my $failures = '/tmp/run-modified-tests.failures';
+
+GetOptions(
+  'run!' => \(my $run = 1),
+  'ret|retry' => sub {
+    my $arg = shift;
+    $retry_file = $failures;
+    if (length($arg) && -f $arg) {
+      $retry_file = $arg;
+    }
+  },
+);
+
+sub apply (&@) {
+  my $code = shift;
+  $code->() foreach @_;
+  return @_;
+}
+
+# chomp(my $root = `git rev-parse --show-toplevel`);
+# chdir $root;
+chdir "/home/dev/src/adama";
+
+my @tests = modified_tests($retry_file);
+
+if (! $run) {
+  print join(' ', @tests), "\n";
+} else {
+  my @test_output = qx{/usr/bin/env prove -Ilib -It/lib @tests};
+
+  my @failed =
+    apply { s/^(\S+).*$/$1/ }
+    grep {
+      $_ =~ /Test Summary Report/ ... $_ =~ /Result/
+        ? $_ =~ /Wstat/
+        : 0;
+    } @test_output;
+
+  if (@failed) {
+    open my $fh, '+>', $failures or die "open $failures: $!\n";
+    print($fh "$_\n") foreach @failed;
+    close $fh;
+  }
+}
+
+exit 0;
+
+sub unzip (&@) {
+  my $code = shift;
+  my ($l, $r) = ([], []);
+  foreach (@_) {
+    my $ar = $code->() ? $l : $r;
+    push @$ar, $_;
+  }
+  return ($l, $r);
+}
+
+sub modified_tests {
+  my ($retry_file) = @_;
+
+  if ($retry_file) {
+    my @tests = do { local (@ARGV) = ($retry_file); (<>) };
+    chomp @tests;
+    return @tests;
+  } else {
+
+    chomp(my @affected = `git status --porcelain`);
+    my ($ts, $pms) =
+      unzip { m{\.t$} }
+        grep { m{t/lib/Adama/Test.*\.pm$} || m{\.t$} }
+        apply { s/^..//; s/^\W+// }
+          grep { $_ !~ /^\s*D/ }
+          @affected;
+
+    # turn list of .pm files into a list of classes
+    @$pms = apply {
+      s{t/lib/}{};
+      s{/}{::}g;
+      s{\.pm$}{};
+    } @$pms;
+
+    my $modules = join '|', @$pms;
+    my $command = qq{git grep -l -E '($modules)->runtests';};
+    chomp(my @module_runners = `$command`);
+    if (@module_runners != @$pms) {
+      die(<<"YIKES");
+Yikes! couldn't find a runner for all modules!
+
+given:
+${\join "\n", map { "  $_" } @$pms}
+
+got:
+${\join "\n", map { "  $_" } @module_runners}
+YIKES
+    }
+
+    return (@$ts, @module_runners);
+  }
+}
