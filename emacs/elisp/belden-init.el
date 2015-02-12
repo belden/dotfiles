@@ -1,5 +1,13 @@
 (provide 'belden-init)
 
+;; specific to mediamath
+(setenv "PERL5LIB" (mapconcat 'identity '(
+                                          "/home/dev/src/adama/lib"
+                                          "/home/dev/src/adama/t/lib"
+                                          "/home/dev/src/adama/extlib/lib/perl5/x86_64-linux-thread-multi"
+                                          "/home/dev/src/adama/extlib/lib/perl5"
+                                          ) ":"))
+
 (if (window-system) (belden-default-font-tiny)) ;; set a smaller font if we can
 
 ;; cperl-mode for horrible mason files
