@@ -45,6 +45,7 @@ if (! $run) {
     } @test_output;
 
   if (@failed) {
+    chomp @failed;
     open my $fh, '+>', $failures or die "open $failures: $!\n";
     print($fh "$_\n") foreach @failed;
     close $fh;
