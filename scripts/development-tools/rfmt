@@ -1,0 +1,32 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+GetOptions(
+  'w|whitespace-cleanup!' => \(my $whitespace_cleanup = 1),
+  'k|kill-empty' => \(my $kill_empty_lines = 0),
+  'u|unpad' => \(my $unpad = 0),
+);
+
+while (<>) {
+  chomp;
+
+  if (! length($_)) {
+    next if $kill_empty_lines;
+    print '';
+  } elsif ($_ =~ m{^\s+$}) {
+    next if $kill_empty_lines;
+    print $whitespace_cleanup ? '' : $_;
+  } else {
+    s/^(\s+)/length($1) % 2 == 1 ? join("", (" " x (length($1) - 1))) : $1/e;
+    if ($unpad) {
+      s/\s+=>/ =>/g;
+    }
+    print $_;
+  }
+
+  print "\n";
+}
