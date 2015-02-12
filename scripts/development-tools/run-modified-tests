@@ -9,6 +9,7 @@ my $retry_file;
 my $failures = '/tmp/run-modified-tests.failures';
 
 GetOptions(
+  'quiet' => \(my $quiet = 0),
   'run!' => \(my $run = 1),
   'ret|retry' => sub {
     my $arg = shift;
@@ -17,6 +18,7 @@ GetOptions(
       $retry_file = $arg;
     }
   },
+  'h|help' => sub { exit 0 * print(usage()) },
 );
 
 sub apply (&@) {
@@ -34,7 +36,12 @@ my @tests = modified_tests($retry_file);
 if (! $run) {
   print join(' ', @tests), "\n";
 } else {
-  my @test_output = qx{/usr/bin/env prove -Ilib -It/lib @tests};
+  my $verbose_flag = $quiet
+    ? ''
+    : ' --verbose';
+
+  my $test_results = "/tmp/run-modified-tests.$$.out";
+  system("(/usr/bin/env prove -Ilib -It/lib $verbose_flag @tests 2>&1) | tee $test_results");
 
   my @failed =
     apply { s/^(\S+).*$/$1/ }
@@ -42,17 +49,30 @@ if (! $run) {
       $_ =~ /Test Summary Report/ ... $_ =~ /Result/
         ? $_ =~ /Wstat/
         : 0;
-    } @test_output;
+    }
+    catfile($test_results);
 
   if (@failed) {
     chomp @failed;
     open my $fh, '+>', $failures or die "open $failures: $!\n";
     print($fh "$_\n") foreach @failed;
     close $fh;
+    print <<"END";
+
+Test failures, see $test_results
+
+END
+    exit 1;
   }
 }
 
 exit 0;
+
+sub catfile {
+  my ($file) = @_;
+  local @ARGV = ($file);
+  (<>);
+}
 
 sub unzip (&@) {
   my $code = shift;
@@ -68,8 +88,7 @@ sub modified_tests {
   my ($retry_file) = @_;
 
   if ($retry_file) {
-    my @tests = do { local (@ARGV) = ($retry_file); (<>) };
-    chomp @tests;
+    chomp(my @tests = catfile($retry_file));
     return @tests;
   } else {
 
@@ -105,4 +124,29 @@ YIKES
 
     return (@$ts, @module_runners);
   }
+}
+
+sub usage {
+  return <<USAGE;
+run-modified-tests [--quiet] [--norun] [--retry]
+
+Find modified tests in the Adama codebase and run them.
+
+Options:
+
+  --run       default: --run
+  --norun     don't actually run tests, just tell what we'd run
+
+  --quiet     by default, 'prove' is run in --verbose mode.
+              'run-modified-tests --quiet' will make your testrun
+              a little more quiet.
+
+  --retry     re-run failed tests from the last run-modified-tests testrun.
+              The idea is that you 'run-modified-tests' once. Some tests will
+              pass, others will fail. You begin working your way through the
+              list of failures, making them pass, and periodically running
+              'run-modified-tests --retry' to winnow the list of failure down.
+  --retry FILE  like --retry, but use the tests listed in FILE instead of the
+                cached file from the last testrun.
+USAGE
 }
