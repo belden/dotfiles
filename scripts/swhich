@@ -11,7 +11,7 @@ function swhich::go() {
   if [[ -z ${source_controlled_file} ]]; then
     exec which ${target_file}
   else
-    echo ${cwd}/${source_controlled_file} | sed 's,//,/,g'
+    echo ${code_root}/${source_controlled_file} | sed 's,//,/,g'
   fi
 }
 
