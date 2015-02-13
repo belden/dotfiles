@@ -62,6 +62,7 @@ if (! $run) {
     if (@failed) {
       chomp @failed;
       open my $fh, '+>', $failures or die "open $failures: $!\n";
+      apply { $_ =~ s{$git_base_dir/}{} } @failed;
       print($fh "$git_base_dir/$_\n") foreach @failed;
       close $fh;
       print <<"END";
