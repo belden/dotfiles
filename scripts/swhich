@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# swhich - edit a script in source control
+
+function swhich::go() {
+  local target_file=${1}
+  local code_root=~/code/dotfiles
+
+  local source_controlled_file=`(cd ${code_root}; git ls-files; git status --porcelain -u | grep \? | tr -d ' ?') | grep ${target_file}`
+
+  if [[ -z ${source_controlled_file} ]]; then
+    exec which ${target_file}
+  else
+    echo ${cwd}/${source_controlled_file} | sed 's,//,/,g'
+  fi
+}
+
+swhich::go ${1}
