@@ -119,17 +119,19 @@ sub test_modules_to_module_runners {
 
   my ($module_runners, $needs_work) = unzip { m{\.t$} } @modules;
 
-  my $modules_regex = join '|', apply {
-    s{t/lib/}{};
-    s{/}{::}g;
-    s{\.pm$}{};
-  } @$needs_work;
+  if (@$needs_work) {
+    my $modules_regex = join '|', apply {
+      s{t/lib/}{};
+      s{/}{::}g;
+      s{\.pm$}{};
+    } @$needs_work;
 
-  # let's assume that every .pm listed ->isa('Test::Class'), and we can
-  # find its associated .t file by looking for a relevant ->runtests line
-  my $command = qq{git grep -l -E '($modules_regex)->runtests';};
-  chomp(my @got = `$command`);
-  push @$module_runners, @got;
+    # let's assume that every .pm listed ->isa('Test::Class'), and we can
+    # find its associated .t file by looking for a relevant ->runtests line
+    my $command = qq{git grep -l -E '($modules_regex)->runtests';};
+    chomp(my @got = `$command`);
+    push @$module_runners, @got;
+  }
 
   # Uh-oh, we didn't find enough runner files. Maybe Belden has had his stinking
   # hands on the codebase...
