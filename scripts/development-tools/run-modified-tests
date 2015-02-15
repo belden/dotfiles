@@ -10,9 +10,9 @@ my $failures = '/tmp/run-modified-tests.failures';
 my $git_base_dir = '/home/dev/src/adama';
 
 GetOptions(
+  'force!' => \(my $force = 0),
+  'h|help' => sub { exit 0 * print(usage()) },
   'quiet' => \(my $quiet = 0),
-  'run!' => \(my $run = 1),
-  'save!' => \(my $save = 1),
   'ret|retry' => sub {
     my $arg = shift;
     $retry_file = $failures;
@@ -20,7 +20,8 @@ GetOptions(
       $retry_file = $arg;
     }
   },
-  'h|help' => sub { exit 0 * print(usage()) },
+  'run!' => \(my $run = 1),
+  'save!' => \(my $save = 1),
 );
 
 sub apply (&@) {
@@ -34,9 +35,9 @@ chdir $git_base_dir;
 my @tests;
 if (@ARGV) {
   $save = 0;
-  @tests = test_modules_to_module_runners(@ARGV);
+  @tests = test_modules_to_module_runners(modules => [@ARGV], force => $force);
 } else {
-  @tests = modified_tests($retry_file);
+  @tests = modified_tests(retry_file => $retry_file, force => $force);
 }
 
 if (! $run) {
@@ -95,10 +96,10 @@ sub unzip (&@) {
 }
 
 sub modified_tests {
-  my ($retry_file) = @_;
+  my (%args) = @_;
 
-  if ($retry_file) {
-    chomp(my @tests = catfile($retry_file));
+  if ($args{retry_file}) {
+    chomp(my @tests = catfile($args{retry_file}));
     return @tests;
   } else {
 
@@ -110,19 +111,20 @@ sub modified_tests {
       grep { $_ !~ /^\s*D/ }
       @affected;
 
-    return (@$ts, test_modules_to_module_runners(@$pms));
+    return (@$ts, test_modules_to_module_runners(modules => $pms, %args));
   }
 }
 
 # turn a list of .pm files into a list of runners for those classes
 sub test_modules_to_module_runners {
-  my (@modules) = @_;
+  my (%args) = @_;
 
+  my @modules = @{$args{modules}};
   my ($module_runners, $needs_work) = unzip { m{\.t$} } @modules;
 
   if (@$needs_work) {
     my $modules_regex = join '|', apply {
-      s{t/lib/}{};
+      s{^.*t/lib/}{};
       s{/}{::}g;
       s{\.pm$}{};
     } @$needs_work;
@@ -141,7 +143,7 @@ sub test_modules_to_module_runners {
     push @$module_runners, grep { -f $_ } apply { s{\.pm$}{.t} } @modules;
   }
 
-  if (@$module_runners != @modules) {
+  if (@$module_runners != @modules && ! $args{force}) {
     die(<<"YIKES");
 Yikes! couldn't find a runner for all modules!
 
@@ -163,8 +165,11 @@ Find modified tests in the Adama codebase and run them.
 
 Options:
 
-  --run       default: --run
-  --norun     don't actually run tests, just tell what we'd run
+  --force    by default, 'run-modified-tests' refuses to run if you have
+  --noforce  more affected "test modules" than test runners can be found.
+             Providing --force overrides this check.
+
+  --help     show this message
 
   --quiet     by default, 'prove' is run in --verbose mode.
               'run-modified-tests --quiet' will make your testrun
@@ -177,6 +182,9 @@ Options:
               'run-modified-tests --retry' to winnow the list of failure down.
   --retry FILE  like --retry, but use the tests listed in FILE instead of the
                 cached file from the last testrun.
+
+  --run       default: --run
+  --norun     don't actually run tests, just tell what we'd run
 
   --save      default: --save
   --nosave    don't update the test result cache with the results of this run
