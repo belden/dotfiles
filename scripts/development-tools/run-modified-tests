@@ -9,6 +9,8 @@ my $retry_file;
 my $failures = '/tmp/run-modified-tests.failures';
 my $git_base_dir = '/home/dev/src/adama';
 
+my $scope = 'uncommitted-changes';
+
 GetOptions(
   'force!' => \(my $force = 0),
   'h|help' => sub { exit 0 * print(usage()) },
@@ -22,6 +24,14 @@ GetOptions(
   },
   'run!' => \(my $run = 1),
   'save!' => \(my $save = 1),
+  'scope=s' => sub {
+    my $desired_scope = pop();
+    die "don't know how to do '--scope $desired_scope'\n" unless +{
+      'uncommitted-changes' => 1,
+      'feature-branch' => 1,
+    }->{$desired_scope};
+    $scope = $desired_scope;
+  },
 );
 
 sub apply (&@) {
@@ -37,7 +47,11 @@ if (@ARGV) {
   $save = 0;
   @tests = test_modules_to_module_runners(modules => [@ARGV], force => $force);
 } else {
-  @tests = modified_tests(retry_file => $retry_file, force => $force);
+  @tests = modified_tests(
+    retry_file => $retry_file,
+    force => $force,
+    scope => $scope,
+  );
 }
 
 if (! $run) {
@@ -95,6 +109,34 @@ sub unzip (&@) {
   return ($l, $r);
 }
 
+sub git_status {
+  my (%args) = @_;
+
+  my @status;
+  if ($args{scope} eq 'feature-branch') {
+    my %seen;
+    chomp(my $branch_stat = `git log --stat \$(git merge-base base HEAD)...HEAD --pretty=oneline`);
+    open my $fh, '<', \$branch_stat or die "open \$branch_stat: $!\n";
+    while (<$fh>) {
+      next if /^\S+/;
+      next if /files changed/;
+      my ($file) = $_ =~ m{^\s+(\S+)\s+\|};
+      next if $seen{$file}++;
+      push @status, $file;
+    }
+    close $fh;
+  } elsif ($args{scope} eq 'uncommitted-changes') {
+    chomp(@status = `git status --porcelain`);
+    @status =
+      apply { s/^..//; s/^\W+// }
+      grep { $_ !~ /^\s*D/ }
+      @status;
+  } else {
+    die "no idea how to fetch a git status for '--scope $args{scope}'\n";
+  }
+  return @status;
+}
+
 sub modified_tests {
   my (%args) = @_;
 
@@ -103,13 +145,10 @@ sub modified_tests {
     return @tests;
   } else {
 
-    chomp(my @affected = `git status --porcelain`);
     my ($ts, $pms) =
       unzip { m{\.t$} }
       grep { m{t/lib/Adama/Test.*\.pm$} || m{\.t$} }
-      apply { s/^..//; s/^\W+// }
-      grep { $_ !~ /^\s*D/ }
-      @affected;
+      git_status(%args);
 
     return (@$ts, test_modules_to_module_runners(modules => $pms, %args));
   }
@@ -185,6 +224,10 @@ Options:
 
   --run       default: --run
   --norun     don't actually run tests, just tell what we'd run
+
+  --scope SCOPE  Use SCOPE to find "modified files". By default, we use
+              --scope=uncommitted-changes. You may also specify
+              --scope=feature-branch
 
   --save      default: --save
   --nosave    don't update the test result cache with the results of this run
