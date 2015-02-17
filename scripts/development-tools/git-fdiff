@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# git f(eature-branch)diff - show diff for a feature branch
+
+git log "$@" --pretty=oneline $(git merge-base base HEAD)...HEAD
+
