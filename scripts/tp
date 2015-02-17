@@ -1,0 +1,16 @@
+#!/bin/bash
+
+id=$(
+  xinput list 'SynPS/2 Synaptics TouchPad' |\
+  head -1 |\
+  cut -f 2 -d = |\
+  cut -f 1 -d "	"
+)
+
+echo ${id}
+xinput list-props ${id} | grep -q 'Device Enabled (136):.*0'
+if [[ $? -eq 0 ]]; then
+  xinput set-prop ${id} "Device Enabled" 1
+else
+  xinput set-prop ${id} "Device Enabled" 0
+fi
