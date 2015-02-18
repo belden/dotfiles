@@ -122,3 +122,8 @@ function gco() {
     local my=${branch/origin\//}
     git checkout --track -b $my $branch
 }
+
+function cs() {
+  local function=${1}
+  comparesub ${function} | pygmentize -l perl
+}
