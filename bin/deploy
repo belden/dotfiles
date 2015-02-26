@@ -32,6 +32,8 @@ FILE: for my $conf_file (glob "conf/*") {
 # }
 
 system('rsync', '-zar', 'scripts/', "$ENV{HOME}/bin/");
+system('rsync', '-zar', 'emacs/emacs', "$ENV{HOME}/.emacs");
+system('rsync', '-zar', 'emacs/elisp', "$ENV{HOME}/.elisp");
 
 sub copy_file {
   my ($source, $destination, $callback) = @_;

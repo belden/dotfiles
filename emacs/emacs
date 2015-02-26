@@ -45,18 +45,6 @@
   (toggle-read-only))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
-(require 'mmm-mode)
-(setq mmm-global-mode 'maybe)
-;; Set up for multi-mode those files that are .mhtml, .md, .mh, .html
-(add-to-list 'auto-mode-alist '("\\.\\(mhtml\\|md\\|mh\\|html\\)\\'" . html-mode))
-(mmm-add-mode-ext-class 'html-mode "\\.\\(mhtml\\|md\\|mh\\|html\\)\\'" 'mason)
-(mmm-add-mode-ext-class 'belden-cperl-mode "\\.\\(mhtml\\|md\\|mh\\|html\\)\\'" 'mason)
-;; set up autohandlers for multi-mode too
-(add-to-list 'auto-mode-alist '("autohandler" . html-mode))
-(mmm-add-mode-ext-class 'html-mode "autohandler" 'mason)
-(mmm-add-mode-ext-class 'belden-cperl-mode "autohandler" 'mason)
-(setq mmm-submode-decoration-level 1)
-
 ;; .yml and .yaml are yaml-mode, yo
 (add-to-list 'auto-mode-alist '("\\.\\(yml\\|yaml\\)" . yaml-mode))
 

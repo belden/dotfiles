@@ -134,6 +134,14 @@
 		 (toggle-read-only)
 		 (other-window 1)))
 
+(defun belden/test-this ()
+  "Run a file with run_tests"
+  (interactive)
+  (let ((file-to-test (if (= 0 (length (filename-under-point))) (buffer-file-name) (filename-under-point))))
+    (compile (concat "/home/dev/bin/development-tools/run-modified-tests " file-to-test)))
+  (other-window 1)
+  (toggle-read-only)
+  (other-window 1))
 
 (defun belden-set-test-file ()
    "Set the testfile to be run"
@@ -142,7 +150,7 @@
        (setq compile-rpf-command (buffer-file-name)))
    (setq compile-rpf-command
          (read-string "TestFile for Buffer: "
-                      (format "%s" compile-rpf-command))))
+                      (format "/home/dev/bin/development-tools/run-modified-tests %s" compile-rpf-command))))
 
 (defun belden-make-executable ()
 	"Makes this file executable"
