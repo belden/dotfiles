@@ -22,6 +22,21 @@ alias view='vim -R'
 alias ascreen='screen -e^\`\` -x -RR'
 alias resource='. ~/.bashrc'
 
+# interact with the tmux clipboard
+# 1. pipe data to tmux for pasting
+#    a. bash$ ls -al | tmux-in
+#    b. in tmux, ^A-]
+# 2. copy data from tmux and use it in the shell
+#    a. in tmux, ^A-[ to start copy mode
+#    b. use arrow keys or vim navigation to get to text to copy
+#    c. <space> toggles selection start
+#    d. M-w copies current selection
+#    e. <enter> stops selection mode
+#
+#    f. bash$ tmux-out > somefile
+alias tmux-in='tmux loadb -'
+alias tmux-out='tmux saveb -'
+
 function md() {
   [[ -d $1 ]] || mkdir -p $1 || return
   cd $1
