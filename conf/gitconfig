@@ -57,7 +57,6 @@
 
   egrep = !find . -type d -name .git -prune -o -type d -name local -prune -o -type d -name node_modules -prune -o -type f -print | xargs grep -Hn $@
 
-  find = !git ls-files | grep $@
   run = !exec $@
   whereami = !git rev-parse --abbrev-ref HEAD
 
