@@ -31,7 +31,8 @@ sub random_string {
 		sysread $fh, $buffer, 1024;
 		my @words = split /\n/, $buffer;
     my $word = $words[rand($#words -2) +1];
-    $word =~ s{(['"])}{\\$1}g;
+    $word =~ s{n't}{};
+    $word =~ s{'s}{};
     return $word;
 	};
 	return join '-', (map { $get_random_word->() } 1..$number_of_words);

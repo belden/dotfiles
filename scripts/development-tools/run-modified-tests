@@ -16,10 +16,12 @@ GetOptions(
   'h|help' => sub { exit 0 * print(usage()) },
   'quiet' => \(my $quiet = 0),
   'ret|retry' => sub {
-    my $arg = shift;
+    my $arg = shift(@ARGV); # spooky
     $retry_file = $failures;
-    if (length($arg) && -f $arg) {
+    if (defined($arg) && -f $arg) {
       $retry_file = $arg;
+    } else {
+      unshift @ARGV, $arg if defined $arg;
     }
   },
   'run!' => \(my $run = 1),
@@ -62,6 +64,7 @@ if (! $run) {
     : ' --verbose';
 
   my $test_results = "/tmp/run-modified-tests.$$.out";
+  print "# running: @tests\n";
   system("(/usr/bin/env prove -Ilib -It/lib $verbose_flag @tests 2>&1) | tee $test_results");
 
   if ($save) {
