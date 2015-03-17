@@ -352,6 +352,7 @@
 (global-set-key [(super a) ?e ?h] 'belden-insert-end-here)
 (global-set-key [(super a) ?e ?r] 'eval-region)
 (global-set-key [(super a) ?f ?c] 'belden-findcallers)
+(global-set-key [(super a) ?l ?o] 'belden-recenter-other-window)
 (global-set-key [(super a) ?m ?p] 'belden-make-perl-module)
 (global-set-key [(super a) ?m ?t] 'belden-make-testfiles)
 (global-set-key [(super a) ?m ?x] 'belden-make-executable)

@@ -52,3 +52,10 @@
       (forward-char 2)
     (if (and (looking-at ">") (string-equal (previous-char) "-"))
         (forward-char 1))))
+
+(defun belden-recenter-other-window ()
+  "Recenter the other window, whatever that means"
+  (interactive)
+  (other-window 1)
+  (recenter-top-bottom)
+  (other-window 1))
