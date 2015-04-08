@@ -46,7 +46,9 @@ if ($set_env) {
   }
 } else {
   my ($arg, @extra) = @ARGV;
-  my ($file, $line_number) = split /:/, $arg || '';
+  my ($file, $line_number) = $arg =~ m{https?://github}
+    ? do { $arg =~ m{release/(lib\S+)#L(\d+)}; ($1, $2) }
+    : (split /:/, $arg || '');
 
   my $extra = join ' ', @extra;
   if (!$line_number && $extra =~ m/line (\d+)/) {

@@ -237,7 +237,7 @@
 (global-set-key [C-mouse-1] 'belden-follow-mouse)
 (global-set-key [f4] 'belden-follow)
 (global-set-key [(super f4)] 'find-tag)
-(global-set-key [f5] 'belden-run-rock)
+(global-set-key [f5] 'belden/test-this)
 (global-set-key [(shift f5)] 'belden-run-perl-file)
 (global-set-key [f6] 'belden-next-error-recenter)
 (global-set-key [(shift f6)] 'belden-previous-error-recenter)
