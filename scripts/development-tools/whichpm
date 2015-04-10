@@ -20,52 +20,16 @@ sub my_log {
 	close $fh;
 }
 
-close STDERR;
-foreach my $module (@ARGV) {
-	my $filename = module_to_file($module);
-
-	local %INC;
-	local $@;
-	eval "use $module";
-
-	if ($@ && !was_loaded($filename) && ! try_harder($root, $module)) {
-		my_log "tried hard to find $module but couldn't, giving up";
-		next;
+my $m = module_to_file(shift(@ARGV));
+foreach my $dir (@INC) {
+	if (-f "$dir/$m") {
+		print "$dir/$m" . ($newline ? "\n" : "");
+		last;
 	}
-
-
-	no strict 'refs';
-	printf "%s%s%s", $INC{$filename},
-		($version ? "\t" . (${$module . '::VERSION'} || '?') : ''),
-		($newline ? "\n" : '');
-}
-
-sub was_loaded {
-	my ($filename) = @_;
-	return exists $INC{$filename};
 }
 
 sub module_to_file {
 	my ($module) = @_;
 	(my $filename = $module) =~ s{::}{/}g;
 	return "$filename.pm";
-}
-
-sub try_harder {
-	my ($root, $module) = @_;
-
-	my_log "looking for $module, root is $root";
-
-	$root =~ s{^(.*)(/(?:bin|lib|www)/).*$}{$1/lib/};
-	my_log "corrected root to $root";
-
-	my $filename = module_to_file($module);
-	my ($dir, $file) = $filename =~ m{^(.*/)(.*?)$};
-	chomp(my $found = `find $root$dir -name $file -type f`);
-	if ($found) {
-		$INC{$filename} = $found;
-		return 1;
-	} else {
-		return 0;
-	}
 }
