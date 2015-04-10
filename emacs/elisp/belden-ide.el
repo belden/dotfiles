@@ -137,11 +137,13 @@
 (defun belden/test-this ()
   "Run a file with run_tests"
   (interactive)
-  (let ((file-to-test (if (= 0 (length (filename-under-point))) (buffer-file-name) (filename-under-point))))
-    (compile (concat "/home/dev/bin/development-tools/run-modified-tests " file-to-test)))
-  (other-window 1)
-  (toggle-read-only)
-  (other-window 1))
+	(setq checkout-root (expand-file-name (locate-dominating-file (buffer-file-name) ".git")))
+	(setq filename (replace-regexp-in-string checkout-root "" (buffer-file-name)))
+	(let ((test-command  (read-string "run test as: " (format "run-modified-tests %s" filename))))
+		(compile test-command)
+		(other-window 1)
+		(toggle-read-only)
+		(other-window 1)))
 
 (defun belden-set-test-file ()
    "Set the testfile to be run"
