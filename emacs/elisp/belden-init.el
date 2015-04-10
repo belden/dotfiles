@@ -63,6 +63,9 @@
 (global-set-key "\M-W\M-k" 'belden-scootch-up-or-find-win-up)
 (global-set-key "\M-W\M-l" 'belden-scootch-right-or-find-win-right)
 
+(global-unset-key "\C-x\C-o")
+(global-set-key "\C-x\C-o" 'other-window)
+
 (defun belden/move-comment ()
 	"move a comment to the next line, eg:
 
