@@ -1,6 +1,6 @@
 all:
 	@bin/deploy
 
-emac23:
+emacs23:
 	rsync -zar emacs/emacs ~/.emacs
 	rsync -zar emacs/elisp/ ~/.elisp/
