@@ -10,7 +10,7 @@
 	(setq belden-toggle-server-piddle (not belden-toggle-server-piddle)))
 
 
-(setq belden-toggle-hard-tabs-piddle 't)
+(setq belden-toggle-hard-tabs-piddle 'nil)
 (defun belden-toggle-tabs ()
 	"Toggle between hard and soft tabs; the default is hard tabs."
 	(interactive)

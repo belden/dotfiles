@@ -27,6 +27,15 @@
   (loop for buf in (buffer-list) do
         (with-current-buffer buf (if setnu-mode (setnu-mode nil)))))
 
+(defun belden/perl-current-class ()
+  "Insert the name of the current class"
+  (interactive)
+  (insert (replace-regexp-in-string "/" "::"
+          (replace-regexp-in-string ".pm$" ""
+          (replace-regexp-in-string "^.*lib/" ""
+          (buffer-file-name))))))
+
+
 (defun belden-open-perl-module (module)
 	"Prompt for a Perl module name and go open it"
 	(interactive
