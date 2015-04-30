@@ -95,6 +95,7 @@ sub find_files {
     "-type d -name local -prune -o",
     "-type d -name extlib -prune -o",
     "-type d -name inc -prune -o",
+    "-type d -name blib -prune -o",
     "-type f",
     "-not -name '.*'",
     "-not -name '*~'",

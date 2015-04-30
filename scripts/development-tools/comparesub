@@ -7,7 +7,7 @@ use Getopt::Long;
 
 my $mode = 'compare-subroutines';
 GetOptions(
-	'as-method-signature' => sub { $mode = 'method-signature' },
+  'as-method-signature' => sub { $mode = 'method-signature' },
   'color' => \(my $color = 0),
 );
 
@@ -24,29 +24,29 @@ if ($color) {
 }
 
 +{
-	'compare-subroutines' => sub { compare_subroutines($outfh, @_) },
-	# 'method-signature' => sub { ... },
+  'compare-subroutines' => sub { compare_subroutines($outfh, @_) },
+  # 'method-signature' => sub { ... },
 }->{$mode}->($subname);
 
 # TODO: use edit_distance to
 # calculate a "Refactorability" score between two methods
 
 sub compare_subroutines {
-	my ($outfh, $subname) = @_;
+  my ($outfh, $subname) = @_;
 
-	foreach my $result (`findcode "^\\s*sub +\\b$subname\\b"`) {
-		my ($file_name, $line_number) = split /:/, $result;
-		if (open my $fh, '<', $file_name) {
-		FAST_FORWARD: while (<$fh>) {
-				last FAST_FORWARD if $. == $line_number - 1;
-			}
-			print "$file_name:$line_number\n";
-			while (<$fh>) {
-				print;
-				last if /^\}/;
-				last if /sub +$subname +\{.*?\}\s*$/;
-			}
-			print "\n";
-		}
-	}
+  foreach my $result (`findcode "^\\s*sub +\\b$subname\\b"`) {
+    my ($file_name, $line_number) = split /:/, $result;
+    if (open my $fh, '<', $file_name) {
+    FAST_FORWARD: while (<$fh>) {
+        last FAST_FORWARD if $. == $line_number - 1;
+      }
+      print "$file_name:$line_number\n";
+      while (<$fh>) {
+        print;
+        last if /^\}/;
+        last if /sub +$subname +\{.*?\}\s*$/;
+      }
+      print "\n";
+    }
+  }
 }
