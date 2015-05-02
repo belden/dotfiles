@@ -13,7 +13,7 @@ Plugin 'gmarik/Vundle.vim'
 
 Plugin 'fatih/vim-go'
 Plugin 'airblade/vim-gitgutter'
-Plugin 'austintaylor/vim-indentobject'
+"Plugin 'austintaylor/vim-indentobject'
 Plugin 'christoomey/vim-tmux-navigator'
 Plugin 'juvenn/mustache.vim'
 Plugin 'kchmck/vim-coffee-script'
@@ -22,7 +22,7 @@ Plugin 'leafgarland/typescript-vim'
 Plugin 'majutsushi/tagbar'
 Plugin 'mileszs/ack.vim'
 Plugin 'msanders/snipmate.vim'
-Plugin 'nathanaelkane/vim-indent-guides'
+"Plugin 'nathanaelkane/vim-indent-guides'
 Plugin 'nono/vim-handlebars'
 Plugin 'pangloss/vim-javascript'
 Plugin 'rmanalan/jshint.vim'
@@ -69,9 +69,11 @@ augroup whitespace
 augroup END
 
 " ensure ftdetect et al work by including this after the Vundle stuff
-filetype plugin indent on
+"filetype plugin indent on
+filetype plugin on
+filetype indent off
 
-set autoindent
+"set autoindent
 set autoread                                                 " reload files when changed on disk, i.e. via `git checkout`
 set backspace=2                                              " Fix broken backspace in some setups
 set backupcopy=yes                                           " see :help crontab
@@ -81,9 +83,9 @@ set expandtab                                                " expand tabs to sp
 set ignorecase                                               " case-insensitive search
 set incsearch                                                " search as you type
 set laststatus=2                                             " always show statusline
-set list                                                     " show trailing whitespace
-set listchars=tab:▸\ ,trail:▫
-set number                                                   " show line numbers
+"set list                                                     " show trailing whitespace
+"set listchars=tab:▸\ ,trail:▫
+"set number                                                   " show line numbers
 set ruler                                                    " show where you are
 set scrolloff=3                                              " show context above/below cursorline
 set shiftwidth=2                                             " normal mode indentation commands use 2 spaces
@@ -118,6 +120,8 @@ nmap <leader>G :GitGutterToggle<CR>
 nmap <leader>c <Plug>Kwbd
 map <silent> <leader>V :source ~/.vimrc<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
 
+map <f5> :!clear;./%
+
 au FileType go nmap <Leader>s <Plug>(go-implements)
 au FileType go nmap <Leader>i <Plug>(go-info)
 au FileType go nmap <Leader>gd <Plug>(go-doc)
@@ -131,4 +135,4 @@ au FileType go nmap <Leader>dv <Plug>(go-def-vertical)
 au FileType go nmap <Leader>dt <Plug>(go-def-tab)
 au FileType go nmap <Leader>e <Plug>(go-rename)
 
-colorscheme jellybeans
+colorscheme breeze

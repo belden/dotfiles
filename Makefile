@@ -1,4 +1,6 @@
-all: tmux
+all: deploy tmux vim
+
+deploy:
 	@bin/deploy
 
 emacs23:
@@ -7,3 +9,6 @@ emacs23:
 
 tmux:
 	rsync -zar conf/.tmux/ ~/.tmux/
+
+vim:
+	vim +PluginInstall +qall
