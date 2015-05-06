@@ -117,12 +117,10 @@
          (when (not (string= belden-last-test-executed compile-rpf-command))
            (setq belden-next-to-last-test-executed belden-last-test-executed))
          (setq belden-last-test-executed compile-rpf-command)
-         (setenv "PERL5LIB" (format "%s/lib:%s/t/lib:%s" (getenv "code_root") (getenv "code_root") (getenv "PERL5LIB")))
-         (compile (format "(cd %s; %s)" (getenv "REPO_PATH") compile-rpf-command))
+         (compile (format "(cd %s; %s)" (file-name-directory (expand-file-name (buffer-name))) compile-rpf-command))
          (other-window 1)
          (toggle-read-only)
          (other-window 1)))))
-
 
 (defun belden-run-rock ()
    "Run a file with rock"
