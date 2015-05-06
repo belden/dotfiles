@@ -8,3 +8,8 @@ function killpm () {
     file=$(echo $file | sed 's,::,/,g;s,$,.pm,');
     killfile "lib/$file"
 }
+
+function changeauthoremail () {
+  # a bit lame
+  git filter-branch -f --commit-filter 'if [ "$GIT_AUTHOR_NAME" = "Belden Lyman" ]; then export GIT_AUTHOR_EMAIL=belden.lyman@gmail.com; fi; git commit-tree "$@"'
+}
