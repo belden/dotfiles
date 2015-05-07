@@ -1,0 +1,57 @@
+;; -*- mode: lisp; -*-
+(load "~/.elisp24/belden/loadpackages.el")
+(load "~/.elisp24/belden/navigation.el")
+
+(require 'menu-bar)
+(menu-bar-mode '0)
+(global-set-key [M-f1] '(lambda () (interactive) (menu-bar-mode 't) (menu-bar-open) (menu-bar-mode '0))
+
+;; Kill whole line with single C-k when at beginning of line
+(setq kill-whole-line t)
+
+(global-unset-key [f10])
+(global-set-key [f10] 'comment-dwim)
+
+;; magit customization
+(setq magit-auto-revert-mode nil)
+(setq magit-last-seen-setup-instructions "1.4.0")
+
+;; make C-q send s-a
+(global-unset-key (kbd "C-q"))
+(define-key function-key-map (kbd "C-q") nil)
+(define-key function-key-map (kbd "C-q") (kbd "s-a"))
+
+;; a real buffer list
+(global-set-key (kbd "C-x C-b") 'electric-buffer-list)
+
+;; cursor movement
+(global-set-key (kbd "\eh") 'backward-char)
+(global-set-key (kbd "\ej") 'next-line)
+(global-set-key (kbd "\ek") 'previous-line)
+(global-set-key (kbd "\el") 'forward-char)
+(global-set-key (kbd "\eH") 'belden/navigation/backward-word)
+(global-set-key (kbd "\eJ") '(lambda () (interactive) (next-line 4)))
+(global-set-key (kbd "\eK") '(lambda () (interactive) (previous-line 4)))
+(global-set-key (kbd "\eL") 'belden/navigation/forward-word)
+
+;; set up custom highlighting for X11 and console emacs
+(if (window-system)
+	(custom-set-faces
+	 '(magit-item-highlight ((t (:inherit nil :background "grey20"))))    ;; X11 make magit highlighting close to black but distinguishable
+	 '(magit-log-sha1 ((((class color) (background dark)) (:foreground "yellow"))))
+	 )
+	(custom-set-faces
+	 '(magit-item-highlight ((t (:inherit nil :background "black"))))    ;; console emacs just avoid the offensive default green (seriously wtf)
+	 '(magit-log-sha1 ((t (:inherit nil :foreground "yellow"))))
+	))
+
+;; git stuff
+(global-set-key [(super a) ?g ?s] 'magit-status)
+(global-set-key [(super a) ?g ?g] 'vc-git-grep)
+
+;; macros
+(global-set-key [(meta \")] 'belden-toggle-kbd-macro-recording)
+(global-set-key [(meta \')] 'call-last-kbd-macro)
+(global-set-key (kbd "s-'")    'belden-edit-kbd-macro)
+(global-set-key (kbd "C-s-'")  'name-last-kbd-macro)
+(global-set-key (kbd "M-s-'")  'belden-assign-to-last-kbd-macro)
