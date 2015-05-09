@@ -1,3 +1,5 @@
+.PHONY: emacs24	
+
 all: deploy tmux vim
 
 deploy:
@@ -8,8 +10,15 @@ emacs23:
 	rsync -zar emacs/elisp/ ~/.elisp/
 
 emacs24:
-	rsync -zar emacs-24/emacs ~/.emacs
-	rsync -zar emacs-24/elisp/ ~/.elisp24/
+	rsync -zar emacs24/emacs ~/.emacs24
+	rsync -zar emacs24/elisp/ ~/.elisp24/
+
+uninstall-emacs24:
+	\rm -rf ~/.emacs24
+	\rm -rf ~/.elisp24
+	\rm -rf ~/.emacs.d
+
+reinstall-emacs24: uninstall-emacs24 emacs24
 
 tmux:
 	rsync -zar conf/.tmux/ ~/.tmux/

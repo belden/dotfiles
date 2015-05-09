@@ -11,7 +11,12 @@
 (defvar belden/required-packages
   '(
     magit
-    ) "a list of pacage to ensure are installed at launch.")
+    cycle-themes
+    ample-theme
+    ample-zen-theme
+    afternoon-theme
+    clues-theme
+    ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()
   (loop for p in belden/required-packages

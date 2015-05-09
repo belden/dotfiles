@@ -5,15 +5,11 @@
       '(wombat ample wheatgrass ample-zen afternoon clues))
 (require 'cycle-themes)
 (cycle-themes-mode)
-;; (load-theme 'wombat 't 'nil)   ;; load and enable this theme
-;; (load-theme 'wheatgrass 't 't) ;; just load this one
-;; (loop for p in cycle-themes-theme-list
-;;       (load-theme p 't 't))
-;; (load-theme (car cycle-themes-theme-list) 't 'nil)
 
 (defun belden/look-and-feel/load-themes-yo! (l)
+  (load-theme (car l) 't 'nil) ;; load and enable the first theme
   (while l
-    (load-theme (car l) 't 't)
+    (load-theme (car l) 't 't) ;; just load the others
     (setq l (cdr l))))
 
 (belden/look-and-feel/load-themes-yo! cycle-themes-theme-list)
