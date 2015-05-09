@@ -1,10 +1,18 @@
 ;; -*- mode: lisp; -*-
 (load "~/.elisp24/belden/loadpackages.el")
 (load "~/.elisp24/belden/navigation.el")
+(load "~/.elisp24/belden/look-and-feel.el")
+(load "~/.elisp24/belden/filesystem.el")
+
+(setq inhibit-startup-message t)
+(setq-default auto-save-directory "~/.autosaves/")
+
+(require 'comint)
+(setq confirm-kill-emacs 'y-or-n-p)
 
 (require 'menu-bar)
 (menu-bar-mode '0)
-(global-set-key [M-f1] '(lambda () (interactive) (menu-bar-mode 't) (menu-bar-open) (menu-bar-mode '0))
+; (global-set-key [M-f1] '(lambda () (interactive) (menu-bar-mode 't) (menu-bar-open) (menu-bar-mode '0))
 
 ;; Kill whole line with single C-k when at beginning of line
 (setq kill-whole-line t)
@@ -21,29 +29,45 @@
 (define-key function-key-map (kbd "C-q") nil)
 (define-key function-key-map (kbd "C-q") (kbd "s-a"))
 
-;; a real buffer list
-(global-set-key (kbd "C-x C-b") 'electric-buffer-list)
+;; buffer management
+(global-set-key (kbd "C-x C-b") 'electric-buffer-list)  ;; a real buffer list
+(iswitchb-mode)
+(add-hook 'iswitchb-define-mode-map-hook 'iswitchb-my-keys)
+(defun iswitchb-my-keys ()
+ "Add my keybindings for iswitchb."
+ (define-key iswitchb-mode-map " " 'iswitchb-next-match)
+ (define-key iswitchb-mode-map "\C-f" 'iswitchb-find-file)
+ (define-key iswitchb-mode-map "\C-o" 'belden-iswitchb-otherwindow)
+ (define-key iswitchb-mode-map "\C-j" 'iswitchb-exit-minibuffer))
+(global-unset-key (kbd "C-j"))
+(global-set-key (kbd "C-j") 'iswitchb-buffer)
 
 ;; cursor movement
 (global-set-key (kbd "\eh") 'backward-char)
 (global-set-key (kbd "\ej") 'next-line)
 (global-set-key (kbd "\ek") 'previous-line)
 (global-set-key (kbd "\el") 'forward-char)
-(global-set-key (kbd "\eH") 'belden/navigation/backward-word)
+(global-set-key (kbd "\eH") 'backward-word)
 (global-set-key (kbd "\eJ") '(lambda () (interactive) (next-line 4)))
 (global-set-key (kbd "\eK") '(lambda () (interactive) (previous-line 4)))
-(global-set-key (kbd "\eL") 'belden/navigation/forward-word)
+(global-set-key (kbd "\eL") 'forward-word)
 
-;; set up custom highlighting for X11 and console emacs
-(if (window-system)
-	(custom-set-faces
-	 '(magit-item-highlight ((t (:inherit nil :background "grey20"))))    ;; X11 make magit highlighting close to black but distinguishable
-	 '(magit-log-sha1 ((((class color) (background dark)) (:foreground "yellow"))))
-	 )
-	(custom-set-faces
-	 '(magit-item-highlight ((t (:inherit nil :background "black"))))    ;; console emacs just avoid the offensive default green (seriously wtf)
-	 '(magit-log-sha1 ((t (:inherit nil :foreground "yellow"))))
-	))
+;; searching
+(add-hook 'isearch-mode-hook
+          (function
+           (lambda ()
+             (define-key isearch-mode-map "*" 'belden-isearch-star-triggers-regex-mode)
+             (define-key isearch-mode-map "\C-h" 'isearch-mode-help)
+             (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
+             (define-key isearch-mode-map "\C-c" 'isearch-toggle-case-fold)
+             (define-key isearch-mode-map "\C-j" 'isearch-edit-string))))
+(define-key isearch-mode-map [delete] 'isearch-delete-char)
+(define-key isearch-mode-map [backspace] 'isearch-delete-char)
+(define-key isearch-mode-map (kbd "C-o") 'isearch-occur) ; when searching, C-o shows occurences
+
+;; tinysearch - not available from a package source near you :(
+;; (require 'tinysearch)
+;; (setq tinysearch-:wrap-flag t)
 
 ;; git stuff
 (global-set-key [(super a) ?g ?s] 'magit-status)
@@ -55,3 +79,21 @@
 (global-set-key (kbd "s-'")    'belden-edit-kbd-macro)
 (global-set-key (kbd "C-s-'")  'name-last-kbd-macro)
 (global-set-key (kbd "M-s-'")  'belden-assign-to-last-kbd-macro)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
+ '(custom-safe-themes
+   (quote
+    ("e16a771a13a202ee6e276d06098bc77f008b73bbac4d526f160faa2d76c1dd0e" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "a041a61c0387c57bb65150f002862ebcfe41135a3e3425268de24200b82d6ec9" "ac5584b12254623419499c3a7a5388031a29be85a15fdef9b94df2292d3e2cbb" "e83c94a6bfab82536cef63610ec58d08dfddd27752d860763055daf58d028aad" "588b1ec3f63dfbd7ab2ba7eda4b1b6009dd1c8ed6a321fa98c492d8a63f1bba7" "7997e0765add4bfcdecb5ac3ee7f64bbb03018fb1ac5597c64ccca8c88b1262f" "2dd32048690787844d8cba601ed3dd8b2f419e9bd985898d0c3792671a05b96b" "180adb18379d7720859b39124cb6a79b4225d28cef4bfcf4ae2702b199a274c8" "726dd9a188747664fbbff1cd9ab3c29a3f690a7b861f6e6a1c64462b64b306de" "ea489f6710a3da0738e7dbdfc124df06a4e3ae82f191ce66c2af3e0a15e99b90" "44eec3c3e6e673c0d41b523a67b64c43b6e38f8879a7969f306604dcf908832c" "9b402e9e8f62024b2e7f516465b63a4927028a7055392290600b776e4a5b9905" "1177fe4645eb8db34ee151ce45518e47cc4595c3e72c55dc07df03ab353ad132" "3ffe2269e4470d74dbe62503771a2535f40045c913657dc4b927e113e542fb5b" "28ec8ccf6190f6a73812df9bc91df54ce1d6132f18b4c8fcc85d45298569eb53" "7d2447bfa3b440e4eb985c6d199afb25c1b71ea8179066b81a09915ebf3aa95e" "cf205b711e61963020e2d1561e87cdbe7727679b58af25dcabfe5073572b16f0" "8288b9b453cdd2398339a9fd0cec94105bc5ca79b86695bd7bf0381b1fbe8147" "3b0a350918ee819dca209cec62d867678d7dac74f6195f5e3799aa206358a983" "77c65d672b375c1e07383a9a22c9f9fc1dec34c8774fe8e5b21e76dca06d3b09" "f782ed87369a7d568cee28d14922aa6d639f49dd676124d817dd82c8208985d0" "cc0dbb53a10215b696d391a90de635ba1699072745bf653b53774706999208e3" "0820d191ae80dcadc1802b3499f84c07a09803f2cb90b343678bdb03d225b26b" "4af6fad34321a1ce23d8ab3486c662de122e8c6c1de97baed3aa4c10fe55e060" "764e3a6472a3a4821d929cdbd786e759fab6ef6c2081884fca45f1e1e3077d1d" "a0feb1322de9e26a4d209d1cfa236deaf64662bb604fa513cca6a057ddf0ef64" "1db337246ebc9c083be0d728f8d20913a0f46edc0a00277746ba411c149d7fe5" "5e3fc08bcadce4c6785fc49be686a4a82a356db569f55d411258984e952f194a" "7356632cebc6a11a87bc5fcffaa49bae528026a78637acd03cae57c091afd9b9" "8d6fb24169d94df45422617a1dfabf15ca42a97d594d28b3584dc6db711e0e0b" "7153b82e50b6f7452b4519097f880d968a6eaf6f6ef38cc45a144958e553fbc6" "04dd0236a367865e591927a3810f178e8d33c372ad5bfef48b5ce90d4b476481" "08efabe5a8f3827508634a3ceed33fa06b9daeef9c70a24218b70494acdf7855" "ab04c00a7e48ad784b52f34aa6bfa1e80d0c3fcacc50e1189af3651013eb0d58" "e8825f26af32403c5ad8bc983f8610a4a4786eb55e3a363fa9acb48e0677fe7e" "cdd26fa6a8c6706c9009db659d2dffd7f4b0350f9cc94e5df657fa295fffec71" "90edd91338ebfdfcd52ecd4025f1c7f731aced4c9c49ed28cfbebb3a3654840b" default)))
+ '(winner-mode t))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(magit-item-highlight ((((class color) (min-colors 89)) (:background "#eee8d5"))))
+ '(magit-log-sha1 ((((class color) (min-colors 89)) (:foreground "#b58900")))))
