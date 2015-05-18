@@ -9,6 +9,7 @@
 (load "belden/filetypes.el")
 (load "belden/customization-mode.el")
 (load "belden/hotkeys-mode.el")
+(load "belden/console-keymap.el")
 
 ;; set up my F* keys
 (belden/hotkeys-mode)
