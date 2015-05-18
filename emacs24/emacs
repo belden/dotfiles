@@ -1,10 +1,17 @@
 ;; -*- mode: lisp; -*-
-(load "~/.elisp24/belden/loadpackages.el")
-(load "~/.elisp24/belden/navigation.el")
-(load "~/.elisp24/belden/look-and-feel.el")
-(load "~/.elisp24/belden/filesystem.el")
-(load "~/.elisp24/belden/filetypes.el")
-(load "~/.elisp24/belden/customization-mode.el")
+(add-to-list 'load-path "~/.elisp24")
+(add-to-list 'load-path "~/.elisp24/belden")
+(add-to-list 'load-path "~/.elisp24/misc")
+(load "belden/loadpackages.el")
+(load "belden/navigation.el")
+(load "belden/look-and-feel.el")
+(load "belden/filesystem.el")
+(load "belden/filetypes.el")
+(load "belden/customization-mode.el")
+(load "belden/hotkeys-mode.el")
+
+;; set up my F* keys
+(belden/hotkeys-mode)
 
 (setq inhibit-startup-message t)
 (setq-default auto-save-directory "~/.autosaves/")
@@ -15,6 +22,18 @@
 (require 'menu-bar)
 (menu-bar-mode '0)
 ; (global-set-key [M-f1] '(lambda () (interactive) (menu-bar-mode 't) (menu-bar-open) (menu-bar-mode '0))
+
+;; turn yes-or-no prompts into y-or-n prompts
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; ido-mode: create files just by visiting them, and probably other
+;;           things I'm used to
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
+(setq ido-use-filename-at-point 'guess)
+(setq ido-use-url-at-point t) ;; if it looks like a URL, open it
+(setq ido-file-extensions-order '(".pm" ".pl" ".t"))
+(ido-mode 1)
 
 ;; Kill whole line with single C-k when at beginning of line
 (setq kill-whole-line t)
@@ -33,16 +52,6 @@
 
 ;; buffer management
 (global-set-key (kbd "C-x C-b") 'electric-buffer-list)  ;; a real buffer list
-(iswitchb-mode)
-(add-hook 'iswitchb-define-mode-map-hook 'iswitchb-my-keys)
-(defun iswitchb-my-keys ()
- "Add my keybindings for iswitchb."
- (define-key iswitchb-mode-map " " 'iswitchb-next-match)
- (define-key iswitchb-mode-map "\C-f" 'iswitchb-find-file)
- (define-key iswitchb-mode-map "\C-o" 'belden-iswitchb-otherwindow)
- (define-key iswitchb-mode-map "\C-j" 'iswitchb-exit-minibuffer))
-(global-unset-key (kbd "C-j"))
-(global-set-key (kbd "C-j") 'iswitchb-buffer)
 
 ;; cursor movement
 (global-set-key (kbd "\eh") 'backward-char)
@@ -58,7 +67,7 @@
 (add-hook 'isearch-mode-hook
           (function
            (lambda ()
-             (define-key isearch-mode-map "*" 'belden-isearch-star-triggers-regex-mode)
+             ;; (define-key isearch-mode-map "*" 'belden-isearch-star-triggers-regex-mode)
              (define-key isearch-mode-map "\C-h" 'isearch-mode-help)
              (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
              (define-key isearch-mode-map "\C-c" 'isearch-toggle-case-fold)
