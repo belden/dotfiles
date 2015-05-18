@@ -4,8 +4,9 @@
 [ ] findcode: C-M-s
 [ ] C-j: jump back a buffer 'iswitchb-buffer
 [ ] f4: 'belden-follow via belden-func.el
-[ ] f5: 'belden-test-this
-[ ] f6: 'belden-next-error-recenter via belden-navigation.el
+[x] f5: 'belden-test-this
+[x] f6: 'belden-next-error-recenter via belden-navigation.el
+  [x] shift-f6
 [x] f7: 'scott-window-mdi-maximize-restore-toggle via scott-window.el
 [ ] f8: 'belden-hide-this-buffer via belden-buffers.el
 [ ] f9: 'belden-perl-debug
@@ -15,3 +16,10 @@
 
 [ ] <tab>: 'belden-indent-cperl-region-or-line
 [ ] <tab> complete variable names
+
+Arrow keys:
+[ ] Ctrl-{left,right,up,down}
+
+s-a functionality:
+[ ] s-a mx  (save-and-make-executable)
+[ ] s-a pc  (perl-compile-check)

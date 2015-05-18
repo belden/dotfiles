@@ -23,9 +23,6 @@
 (menu-bar-mode '0)
 ; (global-set-key [M-f1] '(lambda () (interactive) (menu-bar-mode 't) (menu-bar-open) (menu-bar-mode '0))
 
-;; turn yes-or-no prompts into y-or-n prompts
-(fset 'yes-or-no-p 'y-or-n-p)
-
 ;; ido-mode: create files just by visiting them, and probably other
 ;;           things I'm used to
 (setq ido-enable-flex-matching t)
