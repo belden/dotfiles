@@ -16,6 +16,7 @@
     ample-zen-theme
     afternoon-theme
     clues-theme
+    nav
     ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()
