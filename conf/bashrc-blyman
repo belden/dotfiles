@@ -114,7 +114,7 @@ function tobelden () {
 
 export PS1="\\u@\\h:\\W\\\$ "
 export EDITOR=vim
-export TERM=xterm
+export TERM=screen-256color # http://stackoverflow.com/a/18601007 says xterm-256color + tmux + emacs = pain
 export PAGER=less
 export LESS=-XRF
 
