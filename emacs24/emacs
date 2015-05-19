@@ -18,6 +18,10 @@
 (load "belden/movement-mode.el")
 (belden/movement-mode)
 
+;; lots of bindings I like
+(load "belden/cperl-power-mode.el")
+(belden/cperl-power-mode)
+
 (setq inhibit-startup-message t)
 (setq-default auto-save-directory "~/.autosaves/")
 
