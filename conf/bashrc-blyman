@@ -116,7 +116,7 @@ export PS1="\\u@\\h:\\W\\\$ "
 export EDITOR=vim
 export TERM=xterm
 export PAGER=less
-export LESS=-XR
+export LESS=-XRF
 
 function startdiff () {
 	local branch=$(git branch | awk '/^\*/{print $2}')
