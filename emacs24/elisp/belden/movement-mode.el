@@ -10,6 +10,7 @@
 	    (define-key map (kbd "C-x \"") 'split-window-below)
 	    (define-key map (kbd "C-x %") 'split-window-right)
 	    (define-key map (kbd "C-x 1") 'delete-other-windows-vertically)
+	    (define-key map (kbd "C-j C-j") 'mode-line-other-buffer)
 	    map))
 
 (provide 'belden/movement-mode)
