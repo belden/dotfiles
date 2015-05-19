@@ -9,9 +9,9 @@ votes | done | key | description
       [x] f6: 'belden-next-error-recenter via belden-navigation.el
         [x] shift-f6
       [x] f7: 'scott-window-mdi-maximize-restore-toggle via scott-window.el
-      [ ] f8: 'belden-hide-this-buffer via belden-buffers.el
+      [X] f8: 'belden-hide-this-buffer
       [ ] f9: 'belden-perl-debug
-      [ ] f10: 'belden-comment-dwim
+      [X] f10: 'belden-comment-dwim
       [x] f11: 'other-window
       [x] f12: 'font-lock-mode
 

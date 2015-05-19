@@ -7,11 +7,12 @@
 	    (define-key map (kbd "<f5>") 'compile)  ;; see below for treatment of 'compile-command in 'cperl-mode-hook
 	    (define-key map (kbd "<f6>") 'belden/next-error-recenter)
 	    (define-key map (kbd "<S-f6>") 'belden/previous-error-recenter)
-	    (define-key map (kbd "<f7>") 'scott-window-mdi-maximize-restore-toggle)
-	    (define-key map (kbd "<f8>") 'belden-hide-this-buffer)
+	    (define-key map (kbd "<f7>") 'belden/hotkeys-mode/delete-or-restore-other-windows-vertically)
+	    (define-key map (kbd "<M-f7>") 'scott-window-mdi-maximize-restore-toggle)
+	    (define-key map (kbd "<f8>") 'delete-window)
 	    (define-key map (kbd "<C-f8>") 'nav-toggle)
 	    (define-key map (kbd "<f9>") 'belden-perl-debug)
-	    (define-key map (kbd "<f10>") 'comment-dwim)
+	    (define-key map (kbd "<f10>") 'belden/hotkeys-mode/comment-dwim)
 	    (define-key map (kbd "<f11>") 'other-window)
 	    (define-key map (kbd "<f12>") 'font-lock-mode)
 	    map))
@@ -22,16 +23,33 @@
        (concat "perl " (buffer-file-name))))
 (add-hook 'cperl-mode-hook 'belden/hotkeys-mode/cperl-compilation)
 
-;; for <f7>
+;; <f7>
+(defun belden/hotkeys-mode/delete-or-restore-other-windows-vertically ()
+  "Delete other windows above and below this window. If the last action was to delete other windows, then restore deleted ones."
+  (interactive)
+  (if (eq last-command 'belden/hotkeys-mode/delete-or-restore-other-windows-vertically)
+      (jump-to-register 'B)
+    (progn
+      (window-configuration-to-register 'B)
+      (delete-other-windows-vertically)
+      )))
+
+;; for <M-f7>
 (load "scott-window.el")
 
-;; for <f8>
+;; for <C-f8>
 (setq nav-disable-overager-window-splitting t)
 (require 'nav)
 
 ;; for <f10>
-(defun belden-comment-dwim (arg)
-  (interactive "*P")
-  (comment-dwim arg))
+(defun belden/hotkeys-mode/comment-dwim ()
+  "Comment the currently selected region. If no region is selected, comment the current line and advance to the next line."
+  (interactive)
+  (if (not mark-active)
+      (progn
+	(comment-region (line-beginning-position) (line-end-position))
+	(forward-line 1)
+	)
+    (comment-dwim nil)))
 
 (provide 'belden/hotkeys-mode)

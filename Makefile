@@ -10,6 +10,7 @@ emacs23:
 	rsync -zar emacs/elisp/ ~/.elisp/
 
 emacs24:
+	mkdir -p ~/.autosaves
 	rsync -zar emacs24/emacs ~/.emacs24
 	rsync -zar emacs24/elisp/ ~/.elisp24/
 
