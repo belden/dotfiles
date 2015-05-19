@@ -24,5 +24,5 @@ votes | done | key | description
       s-a functionality:
 4     [x] s-a mx  (save-and-make-executable)
 1     [ ] s-a pc  (perl-compile-check)
-3     [ ] s-a ub  (update-buffers)
+3     [x] s-a ub  (update-buffers)
 
