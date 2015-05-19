@@ -6,12 +6,14 @@ deploy:
 	@bin/deploy
 
 emacs23:
-	rsync -zar emacs/emacs ~/.emacs
+	rsync -zar emacs/emacs ~/.emacs23
+	ln -sf ~/.emacs24 ~/.emacs
 	rsync -zar emacs/elisp/ ~/.elisp/
 
 emacs24:
 	mkdir -p ~/.autosaves
 	rsync -zar emacs24/emacs ~/.emacs24
+	ln -sf ~/.emacs24 ~/.emacs
 	rsync -zar emacs24/elisp/ ~/.elisp24/
 
 uninstall-emacs24:
