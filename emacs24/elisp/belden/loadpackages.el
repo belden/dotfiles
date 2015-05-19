@@ -17,6 +17,7 @@
     afternoon-theme
     clues-theme
     nav
+    hide-lines
     ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()

@@ -15,8 +15,8 @@ votes | done | key | description
       [x] f11: 'other-window
       [x] f12: 'font-lock-mode
 
-      [ ] <tab>: 'belden-indent-cperl-region-or-line
-      [ ] <tab> complete variable names
+      [x] <tab>: 'belden-indent-cperl-region-or-line
+      [x] <tab> complete variable names
 
       Arrow keys:
       [ ] Ctrl-{left,right,up,down}
