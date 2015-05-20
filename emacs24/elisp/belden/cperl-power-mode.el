@@ -18,7 +18,7 @@
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
 	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (random)))
-	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (random 2147483647))
+	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (random 2147483647)))
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
