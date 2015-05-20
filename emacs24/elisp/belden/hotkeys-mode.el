@@ -17,6 +17,18 @@
 	    (define-key map (kbd "<f12>") 'font-lock-mode)
 	    map))
 
+;; <M-f1>
+(defun belden/menu-bar-open ()
+  "toggle the menu bar on and activate it"
+  (interactive)
+  (progn
+    (menu-bar-mode 1)
+    (menu-bar-open)
+    ))
+(defadvice belden/menu-bar-open (after belden-deactivate-menu activate)
+  "close the menu bar after it gets opened"
+  (menu-bar-mode -1))
+
 ;; for <f5>
 (defun belden/hotkeys-mode/cperl-compilation ()
   (set (make-local-variable 'compile-command)

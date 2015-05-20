@@ -22,6 +22,7 @@
 (define-key input-decode-map (kbd "\e[1;5D]") [C-left])
 ;; (define-key input-decode-map (kbd "\e[1;6D]") [S-C-left])
 
+(define-key input-decode-map "\e[1;3P" [M-f1])
 (define-key input-decode-map "\e[17;2~" [S-f6])
 (define-key input-decode-map "\e[18;3~" [M-f7])
 (define-key input-decode-map "\e[19;5~" [C-f8])

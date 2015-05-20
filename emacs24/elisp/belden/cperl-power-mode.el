@@ -9,6 +9,7 @@
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
 	    (define-key map (kbd "s-a h 0") 'hide-lines-show-all)
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
+	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 	    map))
