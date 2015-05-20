@@ -8,6 +8,12 @@
 	    (define-key map (kbd "s-a h ~") 'hide-lines-matching)
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
 	    (define-key map (kbd "s-a h 0") 'hide-lines-show-all)
+
+	    ;; toggle on/off my various minor modes
+	    (define-key map (kbd "s-a m h") 'belden/hotkeys-mode)
+	    (define-key map (kbd "s-a m m") 'belden/movement-mode)
+	    (define-key map (kbd "s-a m p") 'belden/cperl-power-mode)
+
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)

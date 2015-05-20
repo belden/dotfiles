@@ -4,6 +4,7 @@ votes | done | key | description
       [ ] findcode: C-M-s
 2     [x] C-j: jump back a buffer 'iswitchb-buffer
 
+      [x] f3: next interesting spot
       [ ] f4: 'belden-follow via belden-func.el
       [x] f5: 'belden-test-this
       [x] f6: 'belden-next-error-recenter via belden-navigation.el
