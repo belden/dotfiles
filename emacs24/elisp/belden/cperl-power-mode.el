@@ -17,6 +17,10 @@
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
+	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (random)))
+	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (random 2147483647))
+	    (define-key map (kbd "s-a r s") 'belden/random-string)
+	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 	    map))
 
@@ -55,3 +59,14 @@
       (if (buffer-modified-p buffer) (error "Buffer has file and buffer changes")
         (revert-buffer t t t))) ; revert if touched and not modified
   (vc-file-clearprops (buffer-file-name)))
+
+(defun belden/shell-insert (belden-shell-command)
+  "Run a shell command and insert its contents, removing trailing newline"
+  (interactive
+   (list (read-string "shell command: ")))
+  (insert (replace-regexp-in-string "\n$" ""
+				    (shell-command-to-string belden-shell-command))))
+
+(defun belden/random-string ()
+  (interactive)
+  (belden/shell-insert "random-string"))
