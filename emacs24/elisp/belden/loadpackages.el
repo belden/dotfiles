@@ -18,6 +18,7 @@
     clues-theme
     nav
     hide-lines
+    go-mode
     ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()
