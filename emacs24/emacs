@@ -26,6 +26,11 @@
 (setq-default auto-save-directory "~/.autosaves/")
 (setq require-final-newline t)
 
+;; Case-insensitive tab completion.
+(setq completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
+(setq read-buffer-completion-ignore-case t)
+
 (require 'comint)
 (setq confirm-kill-emacs 'y-or-n-p)
 
