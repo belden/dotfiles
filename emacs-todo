@@ -1,7 +1,7 @@
 votes | done | key | description
 ------|------|-----|------------
 10    [ ] goto matching character: M-]
-      [ ] findcode: C-M-s
+      [x] findcode: C-M-s
 2     [x] C-j: jump back a buffer 'iswitchb-buffer
 
       [x] f3: next interesting spot
@@ -24,6 +24,6 @@ votes | done | key | description
 
       s-a functionality:
 4     [x] s-a mx  (save-and-make-executable)
-1     [ ] s-a pc  (perl-compile-check)
+1     [x] s-a pc  (perl-compile-check)
 3     [x] s-a ub  (update-buffers)
 

@@ -4,6 +4,7 @@
   :lighter " 貝"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "M-#") 'belden/hotkeys-mode/comment-dwim)
 	    (define-key map (kbd "<f3>") 'belden/visit-next-interesting-spot)
 	    (define-key map (kbd "<f4>") 'belden-follow)
 	    (define-key map (kbd "<f5>") 'compile)  ;; see below for treatment of 'compile-command in 'cperl-mode-hook

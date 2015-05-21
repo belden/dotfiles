@@ -24,6 +24,7 @@
 
 (setq inhibit-startup-message t)
 (setq-default auto-save-directory "~/.autosaves/")
+(setq require-final-newline t)
 
 (require 'comint)
 (setq confirm-kill-emacs 'y-or-n-p)

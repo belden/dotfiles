@@ -9,12 +9,17 @@
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
 	    (define-key map (kbd "s-a h 0") 'hide-lines-show-all)
 
+	    ;; understand more about the code you're looking at, using B:: modules
+	    (define-key map (kbd "s-a B c") 'cperl-concise-region)
+	    (define-key map (kbd "s-a B d") 'cperl-deparse-region)
+
 	    ;; toggle on/off my various minor modes
 	    (define-key map (kbd "s-a m h") 'belden/hotkeys-mode)
 	    (define-key map (kbd "s-a m m") 'belden/movement-mode)
 	    (define-key map (kbd "s-a m p") 'belden/cperl-power-mode)
 
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
+	    (define-key map (kbd "s-a p c") 'cperl-check-syntax)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
 	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (random)))
@@ -22,6 +27,10 @@
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
+
+	    ;; more intrusive bindings
+	    (define-key map (kbd "C-M-s") 'belden/findcode)
+
 	    map))
 
 (require 'hide-lines)
@@ -48,7 +57,7 @@
               (if (and (not (verify-visited-file-modtime buffer)) ; been touched
                        (buffer-modified-p buffer)) ; and modified
                   (setq errmesg (concat errmesg
-                    (format "Buffer '%s' has file and buffer changes!\n" buffer)))
+					(format "Buffer '%s' has file and buffer changes!\n" buffer)))
                 (belden/cperl-power-mode/update-buffer buffer))))
     (message "%s" (or errmesg "Done refreshing all open non-modified files..."))))
 
@@ -70,3 +79,29 @@
 (defun belden/random-string ()
   (interactive)
   (belden/shell-insert "random-string"))
+
+(defun cperl-deparse-region ()
+  (interactive)
+  (shell-command-on-region (region-beginning) (region-end) "perl -MO=Deparse"))
+
+(defun cperl-concise-region ()
+  (interactive)
+  (shell-command-on-region (region-beginning) (region-end) "perl -MO=Concise"))
+
+(defun belden-findcode  (findcode-command)
+  "Run a findcode in separate buffer"
+  (interactive
+   (list (read-string "Run findcode as: "
+		      (format "findcode %s" (_belden-current-keyword-or-quoted-active-region)))))
+  (let ((compilation-buffer-name-function
+	 (lambda (mode-name)
+	   (format "*%s*" findcode-command))))
+    (grep findcode-command)))
+
+(defun _belden-current-keyword-or-quoted-active-region ()
+  (if mark-active (concat "'" (_belden-active-region) "'")
+    (or (current-word nil t) "")))
+
+(defun _belden-active-region ()
+  (buffer-substring (point) (mark)))
+
