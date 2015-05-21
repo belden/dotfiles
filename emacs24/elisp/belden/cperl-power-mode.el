@@ -26,6 +26,8 @@
 	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (random 2147483647)))
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
+	    (define-key map (kbd "s-a t \"") 'belden/split-window-below/ansi-term)
+	    (define-key map (kbd "s-a a %") 'belden/split-window-right/ansi-term)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 
 	    ;; more intrusive bindings
@@ -105,3 +107,14 @@
 (defun _belden-active-region ()
   (buffer-substring (point) (mark)))
 
+(defun belden/split-window-right/ansi-term ()
+  "pop a new buffer right with an ansi-term in it"
+  (interactive)
+  (belden/split-window-right)
+  (call-interactively (ansi-term "/bin/bash")))
+
+(defun belden/split-window-below/ansi-term ()
+  "pop a new buffer down with an ansi-term in it"
+  (interactive)
+  (belden/split-window-below)
+  (call-interactively (ansi-term "/bin/bash")))
