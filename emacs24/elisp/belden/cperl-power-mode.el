@@ -91,7 +91,7 @@
   (interactive)
   (shell-command-on-region (region-beginning) (region-end) "perl -MO=Concise"))
 
-(defun belden-findcode  (findcode-command)
+(defun belden/findcode  (findcode-command)
   "Run a findcode in separate buffer"
   (interactive
    (list (read-string "Run findcode as: "
