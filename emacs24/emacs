@@ -132,4 +132,5 @@
  '(magit-diff-hunk-header ((t (:foreground "green"))))
  '(magit-item-highlight ((t (:background "black" :foreground "white"))))
  '(magit-log-sha1 ((((class color) (min-colors 89)) (:foreground "#b58900"))))
- '(magit-section-title ((t (:foreground "color-23")))))
+ '(magit-section-title ((t (:foreground "color-23"))))
+ '(magit-tag ((t (:foreground "goldenrod4")))))
