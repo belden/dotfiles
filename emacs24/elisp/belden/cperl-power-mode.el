@@ -32,6 +32,7 @@
 
 	    ;; more intrusive bindings
 	    (define-key map (kbd "C-M-s") 'belden/findcode)
+	    (define-key map (kbd "M-]") 'belden/goto-match-paren)
 
 	    map))
 
@@ -118,3 +119,12 @@
   (interactive)
   (belden/split-window-below)
   (call-interactively (ansi-term "/bin/bash")))
+
+;; http://www.emacswiki.org/emacs/NavigatingParentheses
+(defun belden/goto-match-paren (arg)
+  "Go to the matching character: () {} [] <>
+
+vi style of % jumping to matching brace."
+  (interactive "p")
+  (cond ((looking-at "[\[\{\<\(]") (forward-list 1) (backward-char 1))
+	((looking-at "[\]\}\>\)]") (forward-char 1) (backward-list 1))))

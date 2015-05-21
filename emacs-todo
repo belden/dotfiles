@@ -1,6 +1,6 @@
 votes | done | key | description
 ------|------|-----|------------
-10    [ ] goto matching character: M-]
+10    [x] goto matching character: M-]
       [x] findcode: C-M-s
 2     [x] C-j: jump back a buffer 'iswitchb-buffer
 
