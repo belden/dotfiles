@@ -5,6 +5,7 @@
   :global t
   :keymap (let ((map (make-sparse-keymap)))
 	    (define-key map (kbd "s-a c s") 'belden/comparesub)
+	    (define-key map (kbd "s-a d d") 'belden/set-buffer-default-directory)
 	    (define-key map (kbd "s-a d w") 'delete-trailing-whitespace)
 	    (define-key map (kbd "s-a h ~") 'hide-lines-matching)
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
@@ -194,11 +195,29 @@ vi style of % jumping to matching brace."
 (defun belden-find-module (m)
   (find-file (belden/cperl-file-for-module m)))
 
+(defun belden/set-buffer-default-directory (dir)
+  "set this buffer's notion of default directory"
+  (interactive
+   (list (let* ((default-entry (pwd))
+		(input (read-string
+			(format "set default directory%s: "
+				(if (string= default-entry "")
+				    ""
+				  (format " (default %s)" default-entry))))))
+	   (if (string= input "")
+	       (if (string= default-entry "")
+		   (error "no directory name given")
+		 default-entry)
+	     input))))
+  (make-variable-buffer-local 'default-directory)
+  (setq default-directory dir))
+
 ;; belden/follow
 (defun belden-follow ()
   "Jump somewhere else based on what is under the point"
   (interactive)
   (cond
+   ((point-on-filenamep) (find-file (current-filename)))
    ((point-on-modulep) (belden-find-module (current-module)))
    ))
 
@@ -214,3 +233,10 @@ vi style of % jumping to matching brace."
       (skip-chars-forward "A-Za-z0-9:_")
       (setq module (buffer-substring beg (point)))
       module)))
+
+(defun point-on-filenamep ()
+  (let ((filename (thing-at-point 'filename)))
+    (file-exists-p filename)))
+
+(defun current-filename ()
+  (thing-at-point 'filename))
