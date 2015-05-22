@@ -116,7 +116,7 @@
 
 (defun _belden-current-keyword-or-quoted-active-region ()
   (if mark-active (concat "'" (_belden-active-region) "'")
-    (or (current-word nil t) "")))
+    (or (current-word nil nil) "")))
 
 (defun _belden-active-region ()
   (buffer-substring (point) (mark)))
