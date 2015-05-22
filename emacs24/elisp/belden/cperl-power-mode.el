@@ -4,6 +4,7 @@
   :lighter " 登"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "s-a c s") 'belden/comparesub)
 	    (define-key map (kbd "s-a d w") 'delete-trailing-whitespace)
 	    (define-key map (kbd "s-a h ~") 'hide-lines-matching)
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
@@ -102,6 +103,16 @@
 	 (lambda (mode-name)
 	   (format "*%s*" findcode-command))))
     (grep findcode-command)))
+
+(defun belden/comparesub (comparesub-command)
+  "View all definitions of a subroutine"
+  (interactive
+   (list (read-string "Run comparesub as: "
+		      (format "comparesub %s" (_belden-current-keyword-or-quoted-active-region)))))
+  (let ((compilation-buffer-name-function
+	 (lambda (mode-name)
+	   (format "*%s" comparesub-command))))
+    (grep comparesub-command)))
 
 (defun _belden-current-keyword-or-quoted-active-region ()
   (if mark-active (concat "'" (_belden-active-region) "'")

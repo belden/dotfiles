@@ -23,6 +23,7 @@ Arrow keys:
 [ ] Ctrl-{left,right,up,down}
 
 s-a functionality:
+[x] s-a cs  (comparesub)
 [x] s-a mx  (save-and-make-executable)
 [x] s-a pc  (perl-compile-check)
 [x] s-a ub  (update-buffers)
