@@ -19,6 +19,7 @@
 	    (define-key map (kbd "s-a m p") 'belden/cperl-power-mode)
 
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
+	    (define-key map (kbd "s-a o p") 'belden/open-perl-module)
 	    (define-key map (kbd "s-a p c") 'cperl-check-syntax)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
@@ -128,3 +129,56 @@ vi style of % jumping to matching brace."
   (interactive "p")
   (cond ((looking-at "[\[\{\<\(]") (forward-list 1) (backward-char 1))
 	((looking-at "[\]\}\>\)]") (forward-char 1) (backward-list 1))))
+
+;; open-perl-file
+(defun belden/open-perl-module (module)
+  "open perl module"
+  (interactive
+   (list (let* ((default-entry (cperl-word-at-point))
+		(input (read-string
+			(format "open perl module%s: "
+				(if (string= default-entry "")
+				    ""
+				  (format " (default %s)" default-entry))))))
+	   (if (string= input "")
+	       (if (string= default-entry "")
+		   (error "no module name given")
+		 default-entry)
+	     input))))
+  (belden-find-module module))
+
+(defun belden/cperl-file-for-module (module)
+  (concat (belden/root-dir) (cperl-module-name-to-filename module)))
+
+(defun belden/root-dir ()
+  "/home/dev/src/adama/lib/")
+
+(defun cperl-module-name-to-filename (module)
+  (replace-regexp-in-string ".pm.pm" ".pm"
+  (replace-regexp-in-string "//" "/"
+  (replace-regexp-in-string "::" "/"
+  (replace-regexp-in-string "$" ".pm" module)))))
+
+(defun belden-find-module (m)
+  (find-file (belden/cperl-file-for-module m)))
+
+;; belden/follow
+(defun belden-follow ()
+  "Jump somewhere else based on what is under the point"
+  (interactive)
+  (cond
+   ((point-on-modulep) (belden-find-module (current-module)))
+   ))
+
+(defun point-on-modulep ()
+  (let ((module (current-module)))
+    (and (string-match "::" module)
+	 (not (string-match "^SUPER::" module)))))
+
+(defun current-module ()
+  (save-excursion
+    (skip-chars-backward "A-Za-z0-9:_")
+    (let ((beg (point)) module)
+      (skip-chars-forward "A-Za-z0-9:_")
+      (setq module (buffer-substring beg (point)))
+      module)))
