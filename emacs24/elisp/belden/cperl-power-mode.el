@@ -34,6 +34,7 @@
 	    ;; more intrusive bindings
 	    (define-key map (kbd "C-M-s") 'belden/findcode)
 	    (define-key map (kbd "M-]") 'belden/goto-match-paren)
+	    (define-key map (kbd "M-n") 'belden-toggle-hide-subs)
 
 	    map))
 
@@ -129,6 +130,26 @@ vi style of % jumping to matching brace."
   (interactive "p")
   (cond ((looking-at "[\[\{\<\(]") (forward-list 1) (backward-char 1))
 	((looking-at "[\]\}\>\)]") (forward-char 1) (backward-list 1))))
+
+(defun this-buffer-major-mode ()
+  "return the major mode of the currently active buffer"
+  (format "%s" (with-current-buffer (current-buffer) major-mode)))
+
+(defun belden-toggle-hide-subs ()
+  (interactive)
+  (let ((funcstr "sub "))
+    (if (string-match "lisp" (this-buffer-major-mode))
+        (setq funcstr
+	      "(def\\(un\\|var\\|group\\|alias\\|custom\\|const\\|subst\\|macro\\|face\\) "))
+    (if (string-match "javascript" (this-buffer-major-mode))
+	(setq funcstr "function")
+      (if (string= comment-start "// ")
+	  (setq funcstr
+		"func")))
+    (if line-move-ignore-invisible
+        (progn (show-all-invisible) (setq line-move-ignore-invisible nil))
+      (hide-non-matching-lines (format "^[\t ]*%s" funcstr))
+      )))
 
 ;; open-perl-file
 (defun belden/open-perl-module (module)

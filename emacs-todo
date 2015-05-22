@@ -1,29 +1,30 @@
-votes | done | key | description
-------|------|-----|------------
-10    [x] goto matching character: M-]
-      [x] findcode: C-M-s
-2     [x] C-j: jump back a buffer 'iswitchb-buffer
+ done | key | description
+------|-----|------------
+[x]    M-]     goto matching character
+[x]    C-M-s   findcode
+[x]    C-j     jump back a buffer 'iswitchb-buffer
 
-      [x] f3: next interesting spot
-      [x] f4: 'belden-follow via belden-func.el
-      [x] f5: 'belden-test-this
-      [x] f6: 'belden-next-error-recenter via belden-navigation.el
-        [x] shift-f6
-      [x] f7: 'scott-window-mdi-maximize-restore-toggle via scott-window.el
-      [X] f8: 'belden-hide-this-buffer
-      [ ] f9: 'belden-perl-debug
-      [X] f10: 'belden-comment-dwim
-      [x] f11: 'other-window
-      [x] f12: 'font-lock-mode
+[x]    f3     next interesting spot
+[x]    f4     'belden-follow via belden-func.el
+[x]    f5     'belden-test-this
+[x]    f6     'belden-next-error-recenter via belden-navigation.el
+[x]    S-<f6> previous error recenter
+[x] f7: 'scott-window-mdi-maximize-restore-toggle via scott-window.el
+[X] f8: 'belden-hide-this-buffer
+[ ] f9: 'belden-perl-debug
+[X] f10: 'belden-comment-dwim
+[x] f11: 'other-window
+[x] f12: 'font-lock-mode
 
-      [x] <tab>: 'belden-indent-cperl-region-or-line
-      [x] <tab> complete variable names
+[x] <tab>: 'belden-indent-cperl-region-or-line
+[x] <tab> complete variable names
 
-      Arrow keys:
-      [ ] Ctrl-{left,right,up,down}
+Arrow keys:
+[ ] Ctrl-{left,right,up,down}
 
-      s-a functionality:
-4     [x] s-a mx  (save-and-make-executable)
-1     [x] s-a pc  (perl-compile-check)
-3     [x] s-a ub  (update-buffers)
+s-a functionality:
+[x] s-a mx  (save-and-make-executable)
+[x] s-a pc  (perl-compile-check)
+[x] s-a ub  (update-buffers)
 
+[x]   M-n   fold/unfold subs
