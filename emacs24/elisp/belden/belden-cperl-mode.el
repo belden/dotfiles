@@ -151,6 +151,7 @@
 		((looking-at "if ") 2)
 		((looking-at "unless ") 2)
 		((looking-at "while ") 2)
+		((looking-at "(") -1)
 		(t 0)))))
 	 ;;
 	 ;; Indenter for continuation lines

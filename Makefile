@@ -7,7 +7,7 @@ deploy:
 
 emacs23:
 	rsync -zar emacs/emacs ~/.emacs23
-	ln -sf ~/.emacs24 ~/.emacs
+	ln -sf ~/.emacs23 ~/.emacs
 	rsync -zar emacs/elisp/ ~/.elisp/
 
 emacs24:
