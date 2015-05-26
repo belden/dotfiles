@@ -193,6 +193,8 @@ vi style of % jumping to matching brace."
   (replace-regexp-in-string "$" ".pm" module)))))
 
 (defun belden-find-module (m)
+  (if (consp current-prefix-arg)
+      (other-window 1))
   (find-file (belden/cperl-file-for-module m)))
 
 (defun belden/set-buffer-default-directory (dir)
