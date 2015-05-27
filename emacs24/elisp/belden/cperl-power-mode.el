@@ -6,6 +6,7 @@
   :keymap (let ((map (make-sparse-keymap)))
 	    (define-key map (kbd "s-a = >") 'belden/align-to-fat-arrow)
 	    (define-key map (kbd "s-a c s") 'belden/comparesub)
+	    (define-key map (kbd "s-a d b") 'cperl-insert-debug-breakpoint)
 	    (define-key map (kbd "s-a d d") 'belden/set-buffer-default-directory)
 	    (define-key map (kbd "s-a d w") 'delete-trailing-whitespace)
 	    (define-key map (kbd "s-a h ~") 'hide-lines-matching)
@@ -168,6 +169,12 @@ vi style of % jumping to matching brace."
   "(align-regexp) to '=>'"
   (interactive "r")
   (align-regexp BEG END "\\(=>\\)" -1 0))
+
+(defun cperl-insert-debug-breakpoint ()
+  "insert a debug break point"
+  (interactive)
+  (insert (concat "local $MY::var = 1; # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+		  "$DB::single = 1 if $MY::var; 1; 1; # XXXXXXXXXXXXXXXXXXXXXXXXXXXX\n")))
 
 ;; open-perl-file
 (defun belden/open-perl-module (module)

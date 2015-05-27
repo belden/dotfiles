@@ -69,6 +69,36 @@
 (setq nav-disable-overager-window-splitting t)
 (require 'nav)
 
+;; for <f9>
+;;;;;;;;;;;;
+;; debugger customizations:
+;;    show line numbers in the file that the debugger is visiting
+(defadvice gud-find-file (after show-line-numbers activate compile)
+  (with-current-buffer (get-file-buffer file)
+    (if (string-match "^perl5db.pl\$" (buffer-name))
+        'nil
+      (setnu-mode 1))))
+
+;;    turn off line numbers when we're done in the debugger
+(defadvice gud-sentinel (after remove-line-numbers activate compile)
+  (belden-remove-line-numbers))
+
+;;    run the debugger on the current file
+(defun belden-perl-debug (perldebug-file)
+	"Run the perl debugger"
+	(interactive
+	 (list (read-string
+					"Run perldb as: "
+					(format "perl -d %s" (buffer-file-name)))))
+	(perldb perldebug-file))
+
+(defun belden-remove-line-numbers ()
+  (interactive)
+  (loop for buf in (buffer-list) do
+        (with-current-buffer buf (if setnu-mode (setnu-mode nil)))))
+;;; </f9>
+
+
 ;; for <f10>
 (defun belden/hotkeys-mode/comment-dwim ()
   "Comment the currently selected region. If no region is selected, comment the current line and advance to the next line."
