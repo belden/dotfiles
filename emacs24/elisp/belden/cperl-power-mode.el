@@ -27,12 +27,18 @@
 	    (define-key map (kbd "s-a p c") 'cperl-check-syntax)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
-	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (random)))
-	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (random 2147483647)))
+	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (insert (format "%s" (random 10000)))))
+	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (insert (format "%s" (random (lsh 2 30))))))
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
+
+	    ;; tmux-style bindings
 	    (define-key map (kbd "s-a t \"") 'belden/split-window-below/ansi-term)
 	    (define-key map (kbd "s-a t %") 'belden/split-window-right/ansi-term)
+	    (define-key map (kbd "s-a r 1") 'rotate:main-vertical)
+	    (define-key map (kbd "s-a r 2") 'rotate:main-horizontal)
+	    (define-key map (kbd "s-a r o") 'rotate-layout)
+
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 
 	    ;; more intrusive bindings
