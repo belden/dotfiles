@@ -4,6 +4,7 @@
   :lighter " 登"
   :global t
   :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "s-a = >") 'belden/align-to-fat-arrow)
 	    (define-key map (kbd "s-a c s") 'belden/comparesub)
 	    (define-key map (kbd "s-a d d") 'belden/set-buffer-default-directory)
 	    (define-key map (kbd "s-a d w") 'delete-trailing-whitespace)
@@ -30,7 +31,7 @@
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
 	    (define-key map (kbd "s-a t \"") 'belden/split-window-below/ansi-term)
-	    (define-key map (kbd "s-a a %") 'belden/split-window-right/ansi-term)
+	    (define-key map (kbd "s-a t %") 'belden/split-window-right/ansi-term)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 
 	    ;; more intrusive bindings
@@ -162,6 +163,11 @@ vi style of % jumping to matching brace."
         (progn (show-all-invisible) (setq line-move-ignore-invisible nil))
       (hide-non-matching-lines (format "^[\t ]*%s" funcstr))
       )))
+
+(defun belden/align-to-fat-arrow (BEG END)
+  "(align-regexp) to '=>'"
+  (interactive "r")
+  (align-regexp BEG END "\\(=>\\)" -1 0))
 
 ;; open-perl-file
 (defun belden/open-perl-module (module)
