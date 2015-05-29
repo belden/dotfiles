@@ -15,6 +15,7 @@ GetOptions(
   'force!' => \(my $force = 0),
   'h|help' => sub { exit 0 * print(usage()) },
   'quiet' => \(my $quiet = 0),
+  'identify' => \(my $identify = 0),
   'ret|retry' => sub {
     my $arg = shift(@ARGV); # spooky
     $retry_file = $failures;
@@ -54,6 +55,12 @@ if (@ARGV) {
     force => $force,
     scope => $scope,
   );
+}
+
+if ($identify) {
+  $|++;
+  print $tests[0];
+  exit;
 }
 
 if (! $run) {

@@ -90,9 +90,16 @@
 	"Run the perl debugger"
 	(interactive
 	 (list (read-string
-					"Run perldb as: "
-					(format "perl -d %s" (buffer-file-name)))))
+		"Run perldb as: "
+		(format "perl -d %s" (belden-likely-debuggable-file-for-buffer-name)))))
+	(cd "/home/dev/src/adama") ;; I'll regret this one day
 	(perldb perldebug-file))
+
+(defun belden-likely-debuggable-file-for-buffer-name ()
+  (let ((bn (buffer-file-name)))
+    (if (string-match ".pm$" bn)
+	(shell-command-to-string (format "run-modified-tests --identify %s" bn))
+      bn)))
 
 (defun belden-remove-line-numbers ()
   (interactive)
