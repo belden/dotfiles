@@ -23,6 +23,9 @@
 (load "belden/cperl-power-mode.el")
 (belden/cperl-power-mode)
 
+;; gdb - always show the gdb window
+(setq gdb-show-main t)
+
 (setq inhibit-startup-message t)
 (setq-default auto-save-directory "~/.autosaves/")
 (setq require-final-newline t)
