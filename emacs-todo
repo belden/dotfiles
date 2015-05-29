@@ -29,3 +29,7 @@ s-a functionality:
 [x] s-a ub  (update-buffers)
 
 [x]   M-n   fold/unfold subs
+
+
+[ ] M-f4  : open file in other window
+[ ] C-u f4: open file in other windo
