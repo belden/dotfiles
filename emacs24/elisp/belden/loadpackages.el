@@ -20,6 +20,9 @@
     hide-lines
     go-mode
     rotate
+    sotlisp ;; looks worth dissecting
+    sos     ;; stackoverflow search
+    list-processes+ ;; add process management to (list-processes)
     ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()

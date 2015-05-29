@@ -1,4 +1,7 @@
 (provide 'belden/cperl-power-mode)
+(require 'sos)
+(require 'belden-follow)
+
 (define-minor-mode belden/cperl-power-mode
   "Add a bunch of keybindings that I got used to at AirWave"
   :lighter " 登"
@@ -23,7 +26,7 @@
 	    (define-key map (kbd "s-a m p") 'belden/cperl-power-mode)
 
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
-	    (define-key map (kbd "s-a o p") 'belden/open-perl-module)
+	    (define-key map (kbd "s-a o p") 'belden/cperl-open-module)
 	    (define-key map (kbd "s-a p c") 'cperl-check-syntax)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
@@ -31,6 +34,7 @@
 	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (insert (format "%s" (random (lsh 2 30))))))
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
+	    (define-key map (kbd "s-a s o") 'sos)
 
 	    ;; tmux-style bindings
 	    (define-key map (kbd "s-a t \"") 'belden/split-window-below/ansi-term)
@@ -171,6 +175,7 @@ vi style of % jumping to matching brace."
       (hide-non-matching-lines (format "^[\t ]*%s" funcstr))
       )))
 
+
 (defun belden/align-to-fat-arrow (BEG END)
   "(align-regexp) to '=>'"
   (interactive "r")
@@ -181,40 +186,6 @@ vi style of % jumping to matching brace."
   (interactive)
   (insert (concat "local $MY::var = 1; # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
 		  "$DB::single = 1 if $MY::var; 1; 1; # XXXXXXXXXXXXXXXXXXXXXXXXXXXX\n")))
-
-;; open-perl-file
-(defun belden/open-perl-module (module)
-  "open perl module"
-  (interactive
-   (list (let* ((default-entry (cperl-word-at-point))
-		(input (read-string
-			(format "open perl module%s: "
-				(if (string= default-entry "")
-				    ""
-				  (format " (default %s)" default-entry))))))
-	   (if (string= input "")
-	       (if (string= default-entry "")
-		   (error "no module name given")
-		 default-entry)
-	     input))))
-  (belden-find-module module))
-
-(defun belden/cperl-file-for-module (module)
-  (concat (belden/root-dir) (cperl-module-name-to-filename module)))
-
-(defun belden/root-dir ()
-  "/home/dev/src/adama/lib/")
-
-(defun cperl-module-name-to-filename (module)
-  (replace-regexp-in-string ".pm.pm" ".pm"
-  (replace-regexp-in-string "//" "/"
-  (replace-regexp-in-string "::" "/"
-  (replace-regexp-in-string "$" ".pm" module)))))
-
-(defun belden-find-module (m)
-  (if (consp current-prefix-arg)
-      (other-window 1))
-  (find-file (belden/cperl-file-for-module m)))
 
 (defun belden/set-buffer-default-directory (dir)
   "set this buffer's notion of default directory"
@@ -232,32 +203,3 @@ vi style of % jumping to matching brace."
 	     input))))
   (make-variable-buffer-local 'default-directory)
   (setq default-directory dir))
-
-;; belden/follow
-(defun belden-follow ()
-  "Jump somewhere else based on what is under the point"
-  (interactive)
-  (cond
-   ((point-on-filenamep) (find-file (current-filename)))
-   ((point-on-modulep) (belden-find-module (current-module)))
-   ))
-
-(defun point-on-modulep ()
-  (let ((module (current-module)))
-    (and (string-match "::" module)
-	 (not (string-match "^SUPER::" module)))))
-
-(defun current-module ()
-  (save-excursion
-    (skip-chars-backward "A-Za-z0-9:_")
-    (let ((beg (point)) module)
-      (skip-chars-forward "A-Za-z0-9:_")
-      (setq module (buffer-substring beg (point)))
-      module)))
-
-(defun point-on-filenamep ()
-  (let ((filename (thing-at-point 'filename)))
-    (file-exists-p filename)))
-
-(defun current-filename ()
-  (thing-at-point 'filename))

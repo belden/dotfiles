@@ -1,4 +1,6 @@
 (provide 'belden/hotkeys-mode)
+(require 'belden-follow)
+
 (define-minor-mode belden/hotkeys-mode
   "Bind F* keys like Belden likes"
   :lighter " 貝"

@@ -8,6 +8,7 @@
 (load "belden/filesystem.el")
 (load "belden/filetypes.el")
 (load "belden/customization-mode.el")
+(load "belden/belden-follow.el")
 (load "belden/console-keymap.el")
 
 ;; set up my F* keys
