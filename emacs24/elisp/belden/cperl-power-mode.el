@@ -8,6 +8,7 @@
   :global t
   :keymap (let ((map (make-sparse-keymap)))
 	    (define-key map (kbd "s-a = >") 'belden/align-to-fat-arrow)
+	    (define-key map (kbd "s-a c c") 'cperl-current-class-name)
 	    (define-key map (kbd "s-a c s") 'belden/comparesub)
 	    (define-key map (kbd "s-a d b") 'cperl-insert-debug-breakpoint)
 	    (define-key map (kbd "s-a d d") 'belden/set-buffer-default-directory)
@@ -39,6 +40,7 @@
 	    ;; tmux-style bindings
 	    (define-key map (kbd "s-a t \"") 'belden/split-window-below/ansi-term)
 	    (define-key map (kbd "s-a t %") 'belden/split-window-right/ansi-term)
+	    (define-key map (kbd "s-a t a") 'belden/test-all-methods-yo)
 	    (define-key map (kbd "s-a r 1") 'rotate:main-vertical)
 	    (define-key map (kbd "s-a r 2") 'rotate:main-horizontal)
 	    (define-key map (kbd "s-a r o") 'rotate-layout)
@@ -203,3 +205,18 @@ vi style of % jumping to matching brace."
 	     input))))
   (make-variable-buffer-local 'default-directory)
   (setq default-directory dir))
+
+(defun belden/test-all-methods-yo ()
+  (interactive)
+  "unset TEST_METHOD environment variable"
+  (setenv "TEST_METHOD" nil)
+  (message "testing everything now, yo"))
+
+(defun cperl-current-class-name ()
+  "Generate a classname from the given buffer name"
+  (interactive)
+  (insert
+   (replace-regexp-in-string "^.*Adama" "Adama"
+   (replace-regexp-in-string "/" "::"
+   (replace-regexp-in-string ".pm$" ""
+   (buffer-file-name))))))
