@@ -10,6 +10,7 @@
 (load "belden/customization-mode.el")
 (load "belden/belden-follow.el")
 (load "belden/console-keymap.el")
+(load "setnu.el")
 
 ;; set up my F* keys
 (load "belden/hotkeys-mode.el")
