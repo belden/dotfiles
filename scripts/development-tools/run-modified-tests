@@ -71,7 +71,8 @@ if (! $run) {
     : ' --verbose';
 
   my $test_results = "/tmp/run-modified-tests.$$.out";
-  print "# running: @tests\n";
+  my $extra = $ENV{TEST_METHOD} ? "TEST_METHOD='$ENV{TEST_METHOD}' " : "";
+  print "# running: $extra@tests\n";
   system("(/usr/bin/env prove -Ilib -It/lib $verbose_flag @tests 2>&1) | tee $test_results");
 
   if ($save) {
