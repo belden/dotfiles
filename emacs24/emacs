@@ -12,6 +12,10 @@
 (load "belden/console-keymap.el")
 (load "setnu.el")
 
+;; lifted from Brian Wisti's config
+(require 'golden-ratio)
+(golden-ratio-mode)
+
 ;; set up my F* keys
 (load "belden/hotkeys-mode.el")
 (belden/hotkeys-mode)
