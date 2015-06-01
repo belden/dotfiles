@@ -24,6 +24,7 @@
     sos     ;; stackoverflow search
     list-processes+ ;; add process management to (list-processes)
     golden-ratio
+    org-jira
     ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()
