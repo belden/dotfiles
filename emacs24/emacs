@@ -98,6 +98,15 @@
 (global-set-key [(super a) ?g ?s] 'magit-status)
 (global-set-key [(super a) ?g ?g] 'vc-git-grep)
 
+;; debugger customization: make the *gud* window stay focused, yo. Also, disable golden-ratio-mode.
+(add-hook 'gud-mode-hook
+  (lambda ()
+    (interactive)
+    (if (call-interactively 'golden-ratio-mode)     ;; whoops, did I just flip this on?
+	(call-interactively 'golden-ratio-mode))  ;; then really turn it off, yo
+    (balance-windows)
+    (set-window-dedicated-p (selected-window) 1)))
+
 ;; macros
 (global-set-key [(meta \")] 'belden-toggle-kbd-macro-recording)
 (global-set-key [(meta \')] 'call-last-kbd-macro)

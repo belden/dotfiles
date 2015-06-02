@@ -33,3 +33,9 @@ s-a functionality:
 
 [ ] M-f4  : open file in other window
 [ ] C-u f4: open file in other windo
+
+
+Debugger:
+[x] disable golden-ratio mode
+[x] make the *gud* window sticky  --
+

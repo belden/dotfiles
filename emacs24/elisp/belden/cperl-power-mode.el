@@ -1,6 +1,8 @@
 (provide 'belden/cperl-power-mode)
 (require 'sos)
 (require 'belden-follow)
+(require 'rainbow-delimiters)
+(require 'rainbow-identifiers)
 
 (define-minor-mode belden/cperl-power-mode
   "Add a bunch of keybindings that I got used to at AirWave"
@@ -22,21 +24,18 @@
 	    (define-key map (kbd "s-a B c") 'cperl-concise-region)
 	    (define-key map (kbd "s-a B d") 'cperl-deparse-region)
 
-	    ;; toggle on/off my various minor modes
-	    (define-key map (kbd "s-a m h") 'belden/hotkeys-mode)
-	    (define-key map (kbd "s-a m m") 'belden/movement-mode)
-	    (define-key map (kbd "s-a m p") 'belden/cperl-power-mode)
-
 	    (define-key map (kbd "s-a m x") 'belden/cperl-power-mode/save-and-make-executable)
 	    (define-key map (kbd "s-a o p") 'belden/cperl-open-module)
 	    (define-key map (kbd "s-a p c") 'cperl-check-syntax)
 	    (define-key map (kbd "s-a p d") 'cperl-perldoc)
 	    (define-key map (kbd "s-a p m") 'belden-cperl-mode)
+	    (define-key map (kbd "s-a r d") 'rainbow-delimiters-mode)
 	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (insert (format "%s" (random 10000)))))
-	    (define-key map (kbd "s-a r i") '(lambda () (interactive) (insert (format "%s" (random (lsh 2 30))))))
+	    (define-key map (kbd "s-a r i") 'rainbow-identifiers-mode)
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
 	    (define-key map (kbd "s-a s o") 'sos)
+	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 
 	    ;; tmux-style bindings
 	    (define-key map (kbd "s-a t \"") 'belden/split-window-below/ansi-term)
@@ -46,8 +45,6 @@
 	    (define-key map (kbd "s-a r 1") 'rotate:main-vertical)
 	    (define-key map (kbd "s-a r 2") 'rotate:main-horizontal)
 	    (define-key map (kbd "s-a r o") 'rotate-layout)
-
-	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
 
 	    ;; more intrusive bindings
 	    (define-key map (kbd "C-M-s") 'belden/findcode)
