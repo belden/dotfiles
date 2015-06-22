@@ -1,9 +1,5 @@
 (provide 'belden/movement-mode)
 
-;; lifted from Brian Wisti's config
-(require 'golden-ratio)
-(golden-ratio-mode)
-
 (define-minor-mode belden/movement-mode
   "Add a bunch of movement bindings that Belden likes."
   :lighter " 李"

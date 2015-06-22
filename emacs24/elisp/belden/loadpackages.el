@@ -23,7 +23,6 @@
     sotlisp ;; looks worth dissecting
     sos     ;; stackoverflow search
     list-processes+ ;; add process management to (list-processes)
-    golden-ratio
     org-jira
     rainbow-delimiters ;; seems pretty
     rainbow-identifiers

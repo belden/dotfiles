@@ -108,6 +108,13 @@
   (interactive)
   (shell-command-on-region (region-beginning) (region-end) "perl -MO=Concise"))
 
+(defun belden/test-this-method (method)
+  "Just test this method"
+  (interactive
+   (list (read-string "method: "
+		      (_belden-current-keyword-or-quoted-active-region))))
+  (setenv "TEST_METHOD" method))
+
 (defun belden/findcode  (findcode-command)
   "Run a findcode in separate buffer"
   (interactive
