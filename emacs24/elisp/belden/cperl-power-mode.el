@@ -42,8 +42,10 @@
 	    (define-key map (kbd "s-a t %") 'belden/split-window-right/ansi-term)
 	    (define-key map (kbd "s-a t a") 'belden/test-all-methods-yo)
 	    (define-key map (kbd "s-a t m") 'belden/test-this-method)
-	    (define-key map (kbd "s-a r 1") 'rotate:main-vertical)
-	    (define-key map (kbd "s-a r 2") 'rotate:main-horizontal)
+	    (define-key belden/cperl-power-mode-map (kbd "s-a r 1") 'rotate:main-horizontal)
+	    (define-key belden/cperl-power-mode-map (kbd "s-a r 2") 'rotate:main-vertical)
+	    (define-key belden/cperl-power-mode-map (kbd "s-a r }") 'rotate-window)
+	    (define-key belden/cperl-power-mode-map (kbd "s-a r {") 'rotate-window)
 	    (define-key map (kbd "s-a r o") 'rotate-layout)
 
 	    ;; more intrusive bindings
