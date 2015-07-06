@@ -182,7 +182,7 @@ vi style of % jumping to matching brace."
 		"func")))
     (if line-move-ignore-invisible
         (progn (show-all-invisible) (setq line-move-ignore-invisible nil))
-      (hide-non-matching-lines (format "^[\t ]*%s" funcstr))
+      (hide-non-matching-lines (format "[\t ]*%s" funcstr))
       )))
 
 
