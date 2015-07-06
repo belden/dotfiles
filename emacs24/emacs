@@ -2,7 +2,7 @@
 (add-to-list 'load-path "~/.elisp24")
 (add-to-list 'load-path "~/.elisp24/belden")
 (add-to-list 'load-path "~/.elisp24/misc")
-(load "belden/loadpackages.el")
+(load "belden/init.el")
 (load "belden/navigation.el")
 (load "belden/look-and-feel.el")
 (load "belden/filesystem.el")
@@ -102,8 +102,8 @@
 (add-hook 'gud-mode-hook
   (lambda ()
     (interactive)
-    (if (call-interactively 'golden-ratio-mode)     ;; whoops, did I just flip this on?
-	(call-interactively 'golden-ratio-mode))  ;; then really turn it off, yo
+;;    (if (call-interactively 'golden-ratio-mode)     ;; whoops, did I just flip this on?
+;;	(call-interactively 'golden-ratio-mode))  ;; then really turn it off, yo
     (balance-windows)
     (set-window-dedicated-p (selected-window) 1)))
 
