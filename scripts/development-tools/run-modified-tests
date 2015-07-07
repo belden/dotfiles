@@ -43,6 +43,23 @@ sub apply (&@) {
   return @_;
 }
 
+sub test_method {
+  my (@tests) = @_;
+
+  if (@tests > 1) {
+    return $ENV{TEST_METHOD} ? "TEST_METHOD='$ENV{TEST_METHOD}' " : "";
+  } else {
+    system(qq{grep -q $ENV{TEST_METHOD} $tests[0]});
+    if ($? != 0) {
+      warn "you specified TEST_METHOD=$ENV{TEST_METHOD} but couldn't find that in $tests[0], running everything\n";
+      delete $ENV{TEST_METHOD};
+      return '';
+    } else {
+      return "TEST_METHOD=$ENV{TEST_METHOD}";
+    }
+  }
+}
+
 chdir $git_base_dir;
 
 my @tests;
@@ -71,8 +88,8 @@ if (! $run) {
     : ' --verbose';
 
   my $test_results = "/tmp/run-modified-tests.$$.out";
-  my $extra = $ENV{TEST_METHOD} ? "TEST_METHOD='$ENV{TEST_METHOD}' " : "";
-  print "# running: $extra@tests\n";
+  my $test_method = test_method(@tests);
+  print "# running: $test_method@tests\n";
   system("(/usr/bin/env prove -Ilib -It/lib $verbose_flag @tests 2>&1) | tee $test_results");
 
   if ($save) {
