@@ -11,7 +11,7 @@ GetOptions(
 
 my ($command, @too_many) = @ARGV;
 die "Don't know how to handle: $command @too_many\n" if @too_many;
-die "Usage: $0 [up | down | ssh]\n" if ! $command;
+die "Usage: $0 [up | down] \n" if ! $command;
 
 # dispatch action or complain
 (
