@@ -46,6 +46,8 @@ sub apply (&@) {
 sub test_method {
   my (@tests) = @_;
 
+  return '' if ! $ENV{TEST_METHOD};
+
   if (@tests > 1) {
     return $ENV{TEST_METHOD} ? "TEST_METHOD='$ENV{TEST_METHOD}' " : "";
   } else {
