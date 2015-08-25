@@ -93,6 +93,7 @@
 		"Run perldb as: "
 		(format "perl -d %s" (belden-likely-debuggable-file-for-buffer-name)))))
 	(cd "/home/dev/src/adama") ;; I'll regret this one day
+	(save-some-buffers)
 	(perldb perldebug-file))
 
 (defun belden-likely-debuggable-file-for-buffer-name ()
