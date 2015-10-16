@@ -18,6 +18,7 @@ die "Usage: $0 [up | down] \n" if ! $command;
   +{
     up => sub { _make('vagrant.up FLAVOUR=perl-dev') },
     down => sub { _make('vagrant.suspend FLAVOUR=perl-dev') },
+    'cleandb' => \&cleandb,
   }->{$command} || sub { die "$command: don't know what you want me to do!\n" }
 )->();
 
@@ -41,4 +42,9 @@ sub _make {
   chdir $dir;
   system("make $make_target");
   chdir $owd;
+}
+
+# I use this within my t1 environment when it's up and running
+sub cleandb {
+  system(q{echo '\l' | psql adama_dev adama | cut -f 1 -d \||grep adama_test_ | tr -d ' ' | perl -lne 'push @d, $_; END { print join q,,, map { "drop database $_;" } @d }' | psql adama_dev adama});
 }
