@@ -46,5 +46,6 @@ sub _make {
 
 # I use this within my t1 environment when it's up and running
 sub cleandb {
+  local $ENV{PERL5LIB} = undef;
   system(q{echo '\l' | psql adama_dev adama | cut -f 1 -d \||grep adama_test_ | tr -d ' ' | perl -lne 'push @d, $_; END { print join q,,, map { "drop database $_;" } @d }' | psql adama_dev adama});
 }
