@@ -12,6 +12,9 @@
 (load "belden/console-keymap.el")
 (load "setnu.el")
 
+;; no hard tabs; also, don't turn 8 spaces into a hard tab
+(setq-default indent-tabs-mode nil)
+
 ;; set up my F* keys
 (load "belden/hotkeys-mode.el")
 (belden/hotkeys-mode)
