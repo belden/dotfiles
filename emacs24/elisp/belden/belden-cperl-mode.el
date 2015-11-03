@@ -75,23 +75,19 @@
 	 ;; Indenters for regular expressions with //x and qw()
 	 ;;
 	 ((eq 'REx-part2 (elt i 0)) ;; [self start] start of /REP in s//REP/x
-;; 	  (message "branch 1")
 	  (goto-char (elt i 1))
 	  (condition-case nil        ; Use indentation of the 1st part
 	      (forward-sexp -1))
 	  (current-column))
 	 ((eq 'indentable (elt i 0))	; Indenter for REGEXP qw() etc
-;; 	  (message "branch 2")
 	  (cond ;;; [indentable terminator start-pos is-block]
 	   ((eq 'terminator (elt i 1)) ; Lone terminator of "indentable string"
-;; 	    (message "branch 2.1")
 	    (goto-char (elt i 2))      ; After opening parens
 	    (beginning-of-line)
 	    (skip-chars-forward " \t")
 	    (+ (or cperl-regexp-indent-step cperl-indent-level)
 	       (current-column)))
 	   ((eq 'first-line (elt i 1)) ; [indentable first-line start-pos]
-;; 	    (message "branch 2.2")
 	    (goto-char (elt i 2))
 	    (beginning-of-line)
 	    (skip-chars-forward " \t")
@@ -99,7 +95,6 @@
 	       (current-column)))
 	   ((eq 'cont-line (elt i 1)); [indentable cont-line pos prev-pos first-char start-pos]
 	    ;; Indent as the level after closing parens
-;; 	    (message "branch 2.3")
 	    (goto-char (elt i 2))     ; indent line
 	    (skip-chars-forward " \t)") ; Skip closing parens
 	    (setq p (point))
@@ -111,10 +106,8 @@
 	    (goto-char (elt i 3))	; previous line
 	    (+ (* p (or cperl-regexp-indent-step cperl-indent-level))
 	       (cond ((eq what ?\) )
-;; 		      (message "branch 2.2.1")
 		      (- cperl-close-paren-offset)) ; compensate
 		     ((eq what ?\| )
-;; 		      (message "branch 2.2.2")
 		      (- (or cperl-regexp-indent-step cperl-indent-level)))
 		     (t 0))
 	       (if (eq (following-char) ?\| )
@@ -127,7 +120,6 @@
 	 ;; Indenter for stuff at toplevel
 	 ;;
 	 ((eq 'toplevel (elt i 0)) ;; [toplevel start char-after state immed-after-block]
-;; 	  (message "branch 3")
 	  (+ (save-excursion		; To beg-of-defun, or end of last sexp
 	       (goto-char (elt i 1))	; start = Good place to start parsing
 	       (- (current-indentation) ;
@@ -144,7 +136,6 @@
 	 ;; Indenter for stuff in "parentheses" (or brackets, braces-as-hash)
 	 ;;
 	 ((eq 'in-parens (elt i 0))
-;; 	  (message "branch 4")
 	  ;; in-parens char-after old-indent-point is-brace containing-sexp
 
 	  ;; group is an expression, not a block:
@@ -160,18 +151,12 @@
 		((looking-at "if ") 2)
 		((looking-at "unless ") 2)
 		((looking-at "while ") 2)
-		(t (progn
-		     (end-of-line)
-		     (left-char)
-		  (cond
-		   ((looking-at "(") -1)
-		   (t 0))))))))
+		(t 0)))))
 	 ;;
 	 ;; Indenter for continuation lines
 	 ;;
 	 ((eq 'continuation (elt i 0))
 	  ;; [continuation statement-start char-after is-block is-brace]
-;; 	  (message "branch 5")
 	  (goto-char (elt i 1))       ; statement-start
 	  (if (looking-at "\\(hash\\)?\\(map\\|grep\\)")
 	      (current-column)
@@ -200,7 +185,6 @@
 	 ;;
 	 ((eq 'have-prev-sibling (elt i 0))
 	  ;; [have-prev-sibling sibling-beg colon-line-end block-start]
-;; 	  (message "branch 6")
 	  (goto-char (elt i 1))       ; sibling-beg
 	  (if (> (elt i 2) (point))   ; colon-line-end; have label before point
 	      (if (> (current-indentation)
@@ -218,7 +202,6 @@
 	 ;; Indenter for the first line in a block
 	 ;;
 	 ((eq 'code-start-in-block (elt i 0))
-;; 	  (message "branch 7")
 	  ;;[code-start-in-block before-brace char-after
 	  ;; is-a-HASH-ref brace-is-first-thing-on-a-line
 	  ;; group-starts-before-start-of-sub start-of-control-group]
