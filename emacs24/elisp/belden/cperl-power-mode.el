@@ -1,6 +1,7 @@
 (provide 'belden/cperl-power-mode)
 (require 'sos)
 (require 'belden-follow)
+(require 'rect)
 (require 'rainbow-delimiters)
 (require 'rainbow-identifiers)
 
@@ -33,6 +34,7 @@
 	    (define-key map (kbd "s-a r n") '(lambda () (interactive) (insert (format "%s" (random 10000)))))
 	    (define-key map (kbd "s-a r i") 'rainbow-identifiers-mode)
 	    (define-key map (kbd "s-a r s") 'belden/random-string)
+	    (define-key map (kbd "s-a r >") 'belden/shift-right)
 	    (define-key map (kbd "s-a s i") 'belden/shell-insert)
 	    (define-key map (kbd "s-a s o") 'sos)
 	    (define-key map (kbd "s-a u b") 'belden/cperl-power-mode/update-buffers)
@@ -228,3 +230,12 @@ vi style of % jumping to matching brace."
    (replace-regexp-in-string "/" "::"
    (replace-regexp-in-string ".pm$" ""
    (buffer-file-name))))))
+
+(defun belden/shift-right (start end string)
+  "indent active region right two spaces"
+  (interactive
+   (progn (list
+	   (region-beginning)
+	   (region-end)
+	   "  ")))
+  (funcall 'string-insert-rectangle start end string))
