@@ -1,0 +1,57 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+use constant GIT_COLLECT_FILE => "$ENV{HOME}/.git_collect";
+
+GetOptions(
+  'show' => \&do_show,
+  'add=s@' => \(my $add_args = []),
+  'drop=s@' => \(my $drop_args = []),
+);
+
+if (@$drop_args) {
+  do_drop(listify(@$drop_args));
+} else {
+  do_add(listify(@$add_args, @ARGV));
+}
+
+sub listify { return map { split /,/, $_ } join ',', @_ }
+
+sub do_add {
+  my (@refs) = @_;
+
+  open my $fh, '>>', GIT_COLLECT_FILE;
+  print $fh "$_\n" foreach @refs;
+  close $fh;
+
+  exit 0;
+}
+
+sub do_show {
+  open my $fh, '<', GIT_COLLECT_FILE;
+  print while <$fh>;
+  close $fh;
+
+  exit 0;
+}
+
+sub do_drop {
+  my (@refs) = @_;
+
+  my $doomed = join '|', @refs;
+  $doomed = qr{$doomed};
+
+  # Here's a dirty way of opening a file for read/write. All told the `local`
+  # and the `while` act as though we've run
+  #   `perl -i -lne 'next if $_ =~ $doomed; print' GIT_COLLECT_FILE`
+  local ($^I, @ARGV) = ('', GIT_COLLECT_FILE);
+  while (<>) {
+    next if $_ =~ $doomed;
+    print;
+  }
+
+  exit 0;
+}
