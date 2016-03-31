@@ -1,5 +1,4 @@
 (provide 'belden/hotkeys-mode)
-(require 'belden-follow)
 
 (define-minor-mode belden/hotkeys-mode
   "Bind F* keys like Belden likes"
@@ -8,7 +7,6 @@
   :keymap (let ((map (make-sparse-keymap)))
 	    (define-key map (kbd "M-#") 'belden/hotkeys-mode/comment-dwim)
 	    (define-key map (kbd "<f3>") 'belden/visit-next-interesting-spot)
-	    (define-key map (kbd "<f4>") 'belden-follow)
 	    (define-key map (kbd "<f5>") 'compile)  ;; see below for treatment of 'compile-command in 'cperl-mode-hook
 	    (define-key map (kbd "<f6>") 'belden/next-error-recenter)
 	    (define-key map (kbd "<S-f6>") 'belden/previous-error-recenter)
@@ -65,7 +63,7 @@
   (jump-to-register 'B))
 
 ;; for <M-f7>
-(load "scott-window.el")
+;; (load "scott-window.el")
 
 ;; for <C-f8>
 (setq nav-disable-overager-window-splitting t)
@@ -92,7 +90,6 @@
 	 (list (read-string
 		"Run perldb as: "
 		(format "perl -d %s" (belden-likely-debuggable-file-for-buffer-name)))))
-	(cd "/home/dev/src/adama") ;; I'll regret this one day
 	(save-some-buffers)
 	(perldb perldebug-file))
 

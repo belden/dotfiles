@@ -10,7 +10,7 @@ scad::popd () {
 
 scad::edit() {
   if [[ $editor -eq 0 ]]; then
-    emacs23 -nw ${1}
+    vim ${1}
   else
     cat >> ${1}
   fi
