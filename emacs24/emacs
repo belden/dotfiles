@@ -67,6 +67,7 @@
 
 ;; make C-q send s-a
 (global-unset-key (kbd "C-q"))
+(global-set-key (kbd "C-q") nil)
 (define-key function-key-map (kbd "C-q") nil)
 (define-key function-key-map (kbd "C-q") (kbd "s-a"))
 
@@ -96,10 +97,6 @@
 ;; tinysearch - not available from a package source near you :(
 ;; (require 'tinysearch)
 ;; (setq tinysearch-:wrap-flag t)
-
-;; git stuff
-(global-set-key [(super a) ?g ?s] 'magit-status)
-(global-set-key [(super a) ?g ?g] 'vc-git-grep)
 
 ;; debugger customization: make the *gud* window stay focused, yo. Also, disable golden-ratio-mode.
 (add-hook 'gud-mode-hook

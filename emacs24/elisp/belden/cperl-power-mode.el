@@ -17,6 +17,8 @@
 	    (define-key map (kbd "s-a d d") 'belden/set-buffer-default-directory)
 	    (define-key map (kbd "s-a d m") 'belden/debug-this-method)
 	    (define-key map (kbd "s-a d w") 'delete-trailing-whitespace)
+            (define-key map (kbd "s-a g s") 'magit-status)
+            (define-key map (kbd "s-a g g") 'vc-git-grep)
 	    (define-key map (kbd "s-a h ~") 'hide-lines-matching)
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
 	    (define-key map (kbd "s-a h 0") 'hide-lines-show-all)
