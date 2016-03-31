@@ -1,0 +1,126 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+GetOptions(
+  'w|width=i' => \(my $width = 80),
+  'g|gutter=i' => \(my $gutter = 5),
+);
+
+my $padding = ' ' x $gutter;
+
+my @hunks;
+my $hunk = hunk->new;
+
+while (<STDIN>) {
+  if (/^$/) {
+    push @hunks, $hunk;
+    $hunk = hunk->new;
+    next;
+  }
+
+  chomp;
+  $hunk->push($_);
+}
+push @hunks, $hunk;
+
+my ($max) = sort { $b <=> $a } map { scalar @{$_->{lines}} } @hunks;
+foreach my $hunk (grep { scalar @{$_->{lines}} != $max } @hunks) {
+  $hunk->push(' ' x $hunk->max_width) for scalar(@{$hunk->{lines}}) .. $max;
+}
+
+my @lines;
+while (@hunks) {
+  push @lines, [];
+  foreach my $hunk (@hunks) {
+    my $max = $hunk->max_width;
+    if ($max < $width) {
+      my $this_line = $hunk->next;
+      if (!defined $this_line) {
+        @hunks = grep { "$_" ne "$hunk" } @hunks;
+        push @{$lines[-1]}, ' ' x $max;
+        next;
+      }
+
+      push @{$lines[-1]}, sprintf "%-${max}s", $this_line;
+    } else {
+      last;
+    }
+  }
+}
+
+foreach (@lines) {
+  print join($padding, @$_), "\n";
+}
+
+{
+  use strict;
+  use warnings;
+  package hunk;
+
+  sub new {
+    return bless +{
+      lines => [],
+      max_width => 0,
+    };
+  }
+
+  sub push {
+    my ($self, $line) = @_;
+    push @{$self->{lines}}, $line;
+    my $l = length($line);
+    $self->{max_width} = $l if $l > $self->{max_width};
+  }
+
+  sub max_width { shift->{max_width} }
+
+  sub next {
+    my ($self) = @_;
+    return shift @{$self->{lines}};
+  }
+}
+
+__END__
+
+Why doesn't `cal` let me produce side-by-side output of its months? Often I do something like this:
+
+```shell
+$ (cal 6 2016; cal 7 2016)
+
+     June 2016
+Su Mo Tu We Th Fr Sa
+          1  2  3  4
+ 5  6  7  8  9 10 11
+12 13 14 15 16 17 18
+19 20 21 22 23 24 25
+26 27 28 29 30
+
+     July 2016
+Su Mo Tu We Th Fr Sa
+                1  2
+ 3  4  5  6  7  8  9
+10 11 12 13 14 15 16
+17 18 19 20 21 22 23
+24 25 26 27 28 29 30
+31
+```
+
+But what I want to see is this:
+
+```shell
+$ (cal 6 2016; cal 7 2016)
+
+     June 2016                July 2016
+Su Mo Tu We Th Fr Sa     Su Mo Tu We Th Fr Sa
+          1  2  3  4                     1  2
+ 5  6  7  8  9 10 11      3  4  5  6  7  8  9
+12 13 14 15 16 17 18     10 11 12 13 14 15 16
+19 20 21 22 23 24 25     17 18 19 20 21 22 23
+26 27 28 29 30           24 25 26 27 28 29 30
+                         31
+```
+
+This is a lame little side-by-side formatter, which attempts to turn paragraphs of text
+into side-by-side views. It probably only works for the exact inputs I've coded it for.

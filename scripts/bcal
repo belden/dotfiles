@@ -1,0 +1,52 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my @months = qw(
+january february march april
+may june july august september
+october november december
+);
+
+my $i = 0;
+my %months = map {
+  (my $short = $_) =~ s{^(...).+}{$1};
+  ($short => ++$i);
+} @months;
+
+my @selected_months;
+
+GetOptions(
+  'year=s' => \(my $year = 1900 + (localtime(time))[5]),
+  (
+    map {
+      (my $short = my $m = $_) =~ s{^(...).+}{$1};
+      (map { ($_ => sub { push @selected_months, $months{$short} }) } ($short, $m));
+    } @months
+  ),
+);
+
+my $cmd = sprintf '(%s) | ~/bin/sbs', join('; echo; ', map { "cal $_ $year" } @selected_months);
+system $cmd;
+
+__END__
+
+A better calendar that supports named months and side-by-side formatting of output.
+
+usage:
+
+```shell
+$ bcal -june -july -august
+
+     June 2016                     July 2016               August 2016
+Su Mo Tu We Th Fr Sa          Su Mo Tu We Th Fr Sa     Su Mo Tu We Th Fr Sa
+          1  2  3  4                          1  2         1  2  3  4  5  6
+ 5  6  7  8  9 10 11           3  4  5  6  7  8  9      7  8  9 10 11 12 13
+12 13 14 15 16 17 18          10 11 12 13 14 15 16     14 15 16 17 18 19 20
+19 20 21 22 23 24 25          17 18 19 20 21 22 23     21 22 23 24 25 26 27
+26 27 28 29 30                24 25 26 27 28 29 30     28 29 30 31
+                              31
+```
