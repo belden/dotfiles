@@ -5,6 +5,19 @@ use warnings;
 
 use Getopt::Long;
 
+sub this_quarter {
+  my ($quarter) = @_;
+
+  return map { @$_ } (
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+    [10, 11, 12],
+  )[$quarter - 1];
+}
+
+sub uniq { my %s; return grep { ! $s{$_}++ } @_ }
+
 my @months = qw(
   january february march april
   may june july august september
@@ -34,9 +47,18 @@ GetOptions(
 if ($quarters) {
   push @selected_months,
     map { this_quarter($_) }
-    sort { $a <=> $b }
     map { split /,/, $_ }
     @$quarters;
+}
+
+# handle `cal` style calling
+if (@ARGV) {
+  if ($ARGV[0] > 12) {    # `bcal -jul 2019`
+    $year = shift @ARGV;
+  } else {
+    push @selected_months, shift(@ARGV);  # `bcal 7 2019`
+    $year = shift(@ARGV) if @ARGV;
+  }
 }
 
 if (!@selected_months) {
@@ -45,20 +67,15 @@ if (!@selected_months) {
 }
 
 # just call `cal` with the right arguments, and pipe output through `sbs`
-my $cmd = sprintf '(%s) | ~/bin/sbs', join('; echo; ', map { "cal $_ $year" } @selected_months);
+my $cmd = sprintf '(%s) | ~/bin/sbs',
+  join('; echo; ',
+    uniq
+    map { "cal $_ $year" }
+    sort { $a <=> $b }
+    @selected_months
+  );
 die $cmd if $debug;
 system $cmd;
-
-sub this_quarter {
-  my ($quarter) = @_;
-
-  return map { @$_ } (
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-    [10, 11, 12],
-  )[$quarter - 1];
-}
 
 __END__
 
