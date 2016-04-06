@@ -6,9 +6,9 @@ use warnings;
 use Getopt::Long;
 
 my @months = qw(
-january february march april
-may june july august september
-october november december
+  january february march april
+  may june july august september
+  october november december
 );
 
 my $i = 0;
@@ -21,16 +21,44 @@ my @selected_months;
 
 GetOptions(
   'year=s' => \(my $year = 1900 + (localtime(time))[5]),
+  'q|quarter=s' => (my $quarters = []),
   (
     map {
       (my $short = my $m = $_) =~ s{^(...).+}{$1};
       (map { ($_ => sub { push @selected_months, $months{$short} }) } ($short, $m));
     } @months
-  ),
+   ),
+  'debug' => \(my $debug = 0),
 );
 
+if ($quarters) {
+  push @selected_months,
+    map { this_quarter($_) }
+    sort { $a <=> $b }
+    map { split /,/, $_ }
+    @$quarters;
+}
+
+if (!@selected_months) {
+  my $this_month = (localtime(time))[4] + 1;
+  push @selected_months, $this_month;
+}
+
+# just call `cal` with the right arguments, and pipe output through `sbs`
 my $cmd = sprintf '(%s) | ~/bin/sbs', join('; echo; ', map { "cal $_ $year" } @selected_months);
+die $cmd if $debug;
 system $cmd;
+
+sub this_quarter {
+  my ($quarter) = @_;
+
+  return map { @$_ } (
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+    [10, 11, 12],
+  )[$quarter - 1];
+}
 
 __END__
 
