@@ -65,6 +65,19 @@
 (setq magit-auto-revert-mode nil)
 (setq magit-last-seen-setup-instructions "1.4.0")
 
+;; <experiment source="https://github.com/purcell/mmm-mode/blob/master/mmm-erb.el">
+(require 'mmm-auto)
+(setq mmm-global-mode 'auto)
+  ;; .erb files should be treated as mixed-mode, here's what worked for me once
+  (mmm-add-mode-ext-class 'html-erb-mode "\\.html\\.erb\\'" 'erb)
+  (mmm-add-mode-ext-class 'html-erb-mode "\\.erb\\'" 'html-js)
+  (mmm-add-mode-ext-class 'html-erb-mode "\\.jst\\.ejs\\'" 'ejs)
+  (mmm-add-mode-ext-class 'html-erb-mode nil 'html-js)
+  (mmm-add-mode-ext-class 'html-erb-mode nil 'html-css)
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . html-erb-mode))
+  (add-to-list 'auto-mode-alist '("\\.jst\\.ejs\\'"  . html-erb-mode))
+;; </experiment>
+
 ;; make C-q send s-a
 (global-unset-key (kbd "C-q"))
 (global-set-key (kbd "C-q") nil)

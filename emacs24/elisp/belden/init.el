@@ -9,24 +9,41 @@
 (package-initialize)
 
 (defvar belden/required-packages
-  '(
-    magit
-    cycle-themes
+  '(afternoon-theme
     ample-theme
     ample-zen-theme
-    afternoon-theme
     clues-theme
-    nav
-    hide-lines
+    color-theme
+    color-theme-solarized
+    csharp-mode
+    cycle-themes
+    ember-mode
+    ember-yasnippets
+    yasnippet
+    eruby-mode
     go-mode
-    rotate
-    sotlisp ;; looks worth dissecting
-    sos     ;; stackoverflow search
-    list-processes+ ;; add process management to (list-processes)
+    handlebars-mode
+    hide-lines
+    js2-mode
+    json-mode
+    json-reformat
+    less-css-mode
+    list-processes+
+    magit
+    magit-popup
+    dash
+    async
+    git-commit
+    with-editor
+    mmm-mode
+    nav
     org-jira
-    rainbow-delimiters ;; seems pretty
+    rainbow-delimiters
     rainbow-identifiers
-    ) "a list of packages to ensure are installed at launch.")
+    rotate
+    sos
+    org
+    sotlisp) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()
   (loop for p in belden/required-packages
