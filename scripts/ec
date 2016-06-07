@@ -8,6 +8,8 @@ use warnings;
 #
 # It handles grep -Hn output: 'ec foo.pl:1234' opens foo.pl to line 1234.
 # It handles perl warnings: 'ec foo.pl line 1234' opens foo.pl to line 1234.
+# It handles github urls: 'ec https://github.com/retailnext/storenet/blob/master/admin_console/config/boot.rb#L10'
+#    (it's not fully git aware though, eg it doesn't switch you between branches)
 #
 # Note, this works best if you have
 #    (server-start)
@@ -18,18 +20,18 @@ my $elisp;
 GetOptions(
   'elisp=s' => \$elisp,
   'setenv=s' => sub {
-		my $arg = pop();
-		my ($env, $value) = $arg =~ /=/
-			? (split /=/, $arg)
-			: ($arg, $ENV{$arg});
-		$elisp = qq{(setenv "$env" "$value")},
+    my $arg = pop();
+    my ($env, $value) = $arg =~ /=/
+      ? (split /=/, $arg)
+      : ($arg, $ENV{$arg});
+    $elisp = qq{(setenv "$env" "$value")},
   },
   'env' => \(my $set_env),
   'peek|join' => \(my $join_existing_session),
 );
 
 my ($emacsclient) = grep { -e $_ } qw(
-  /usr/local/emacs23.3.1/bin/emacsclient
+  /Applications/Emacs.app/Contents/MacOS/bin/emacsclient
   /usr/local/bin/emacsclient
   /usr/bin/emacsclient
 );
@@ -47,7 +49,7 @@ if ($set_env) {
 } else {
   my ($arg, @extra) = @ARGV;
   my ($file, $line_number) = $arg =~ m{https?://github}
-    ? do { $arg =~ m{release/(lib\S+)#L(\d+)}; ($1, $2) }
+    ? do { $arg =~ m{blob/[^/]+/(\S+)#L(\d+)}; ($1, $2) }
     : (split /:/, $arg || '');
 
   my $extra = join ' ', @extra;
@@ -59,7 +61,7 @@ if ($set_env) {
   if ($elisp) {
     $cmd = qq{$emacsclient -e '$elisp'};
   } elsif ($line_number && $line_number =~ /^\d+/) {
-    $cmd = qq{$emacsclient -e '(find-file "$file")' -e '(set-mark-and-goto-line $line_number)'};
+    $cmd = qq{$emacsclient -e '(find-file "$file")' -e '(goto-line $line_number)'};
   } elsif ($arg && -f $arg) {
     $cmd = "$emacsclient --no-wait $arg";
   } elsif ($join_existing_session) {
