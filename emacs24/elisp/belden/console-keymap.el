@@ -32,3 +32,10 @@
 (define-key input-decode-map (kbd "M-j") [down])
 (define-key input-decode-map (kbd "M-k") [up])
 (define-key input-decode-map (kbd "M-l") [right])
+
+;; Control + F{8,12} for tmux + iterm2
+(define-key input-decode-map "\e[19~" [C-f8])
+(define-key input-decode-map "\e[20~" [C-f9])
+(define-key input-decode-map "\e[21~" [C-f10])
+(define-key input-decode-map "\e[23~" [C-f11])
+(define-key input-decode-map "\e[24~" [C-f11])
