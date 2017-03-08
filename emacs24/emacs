@@ -1,4 +1,11 @@
 ;; -*- mode: lisp; -*-
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+(package-initialize)
+
 (add-to-list 'load-path "~/.elisp24")
 (add-to-list 'load-path "~/.elisp24/belden")
 (add-to-list 'load-path "~/.elisp24/misc")
@@ -12,8 +19,15 @@
 (load "belden/console-keymap.el")
 (load "setnu.el")
 
+
+(add-to-list 'load-path "~/.emacs.d/elpa-to-submit")
+(load "json-error.el")
+(load "nb-js.el")
+
 ;; no hard tabs; also, don't turn 8 spaces into a hard tab
 (setq-default indent-tabs-mode nil)
+
+(which-function-mode)
 
 ;; set up my F* keys
 (load "belden/hotkeys-mode.el")
@@ -152,6 +166,11 @@
  '(cperl-array-face ((t (:foreground "yellow"))))
  '(cperl-hash-face ((t (:foreground "Red"))))
  '(cperl-nonoverridable-face ((t (:foreground "green"))))
+ '(diff-added ((t (:foreground "green"))))
+ '(diff-file-header ((t (:foreground "red" :weight bold))))
+ '(diff-header ((t (:foreground "yellow"))))
+ '(diff-indicator-removed ((t (:foreground "red"))))
+ '(diff-removed ((t (:inherit diff-changed :foreground "red"))))
  '(font-lock-comment-delimiter-face ((t (:inherit font-lock-comment-face :foreground "red" :slant italic))))
  '(font-lock-comment-face ((t (:foreground "yellow" :slant italic))))
  '(font-lock-constant-face ((t (:foreground "magenta" :weight normal))))
@@ -163,14 +182,23 @@
  '(git-commit-comment-action-face ((t (:foreground "cyan"))))
  '(git-commit-overlong-summary-face ((t (:foreground "#ccaa8f"))))
  '(git-commit-summary-face ((t (:foreground "yellow"))))
+ '(highlight ((t (:background "color-25" :foreground "#f6f3e8" :underline t))))
  '(magit-branch ((t (:foreground "DodgerBlue"))))
- '(magit-diff-add ((t (:foreground "cyan"))))
- '(magit-diff-del ((t (:foreground "magenta"))))
+ '(magit-diff-added ((t (:foreground "green"))))
+ '(magit-diff-added-highlight ((t (:foreground "green"))))
  '(magit-diff-file-header ((t (:foreground "red" :weight bold))))
+ '(magit-diff-file-heading ((t (:weight bold))))
  '(magit-diff-hunk-header ((t (:foreground "green"))))
+ '(magit-diff-hunk-heading ((t (:foreground "yellow"))))
+ '(magit-diff-hunk-heading-highlight ((t (:background "grey35" :foreground "yellow"))))
+ '(magit-diff-item-highlight ((t (:background "black" :foreground "white"))))
+ '(magit-diff-removed ((t (:foreground "red"))))
+ '(magit-diff-removed-highlight ((t (:foreground "red"))))
  '(magit-item-highlight ((t (:background "black" :foreground "white"))))
  '(magit-log-sha1 ((((class color) (min-colors 89)) (:foreground "#b58900"))))
  '(magit-section-title ((t (:foreground "color-23"))))
  '(magit-tag ((t (:foreground "goldenrod4"))))
  '(mode-line-emphasis ((t (:foreground "red" :weight bold))))
- '(mode-line-inactive ((t (:background "grey35" :foreground "white")))))
+ '(mode-line-inactive ((t (:background "grey15" :foreground "white"))))
+ '(region ((t (:background "color-25" :foreground "#f6f3e8"))))
+ '(which-func ((t (:foreground "color-130")))))

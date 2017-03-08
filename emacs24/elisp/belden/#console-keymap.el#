@@ -1,4 +1,4 @@
-;; (define-key input-decode-map (kbd "\e[1;2A]") [S-up])
+it;; (define-key input-decode-map (kbd "\e[1;2A]") [S-up])
 ;; (define-key input-decode-map (kbd "\e[1;3A]") [M-up])
 ;; (define-key input-decode-map (kbd "\e[1;4A]") [S-M-up])
 (define-key input-decode-map (kbd "\e[1;5A]") [C-up])

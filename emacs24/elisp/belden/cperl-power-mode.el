@@ -85,7 +85,8 @@
                   (setq errmesg (concat errmesg
 					(format "Buffer '%s' has file and buffer changes!\n" buffer)))
                 (belden/cperl-power-mode/update-buffer buffer))))
-    (message "%s" (or errmesg "Done refreshing all open non-modified files..."))))
+    (message "%s" (or errmesg "Done refreshing all open non-modified files...")))
+  (magit-refresh))
 
 (defun belden/cperl-power-mode/update-buffer (buffer)
   (set-buffer buffer)
