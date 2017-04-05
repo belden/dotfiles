@@ -44,6 +44,7 @@
 	    (define-key map (kbd "s-a d w") 'delete-trailing-whitespace)
             (define-key map (kbd "s-a g s") 'magit-status)
             (define-key map (kbd "s-a g g") 'vc-git-grep)
+            (define-key map (kbd "s-a f d") 'diff-buffer-with-file)
 	    ;; (define-key map (kbd "s-a h ~") 'hide-lines-matching)
 	    ;; (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
 	    ;; (define-key map (kbd "s-a h 0") 'hide-lines-show-all)
