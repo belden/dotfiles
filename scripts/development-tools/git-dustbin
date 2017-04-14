@@ -43,6 +43,10 @@ foreach my $branch (@ARGV) {
     }
   }
 
+  if ($branch eq '-') {
+    chomp($branch = `git rev-parse --abbrev-ref \@{-1}`);
+  }
+
   if ($branch eq 'master') {
     warn "git-dusbin: refusing to dustbin `master`\n";
     next;
