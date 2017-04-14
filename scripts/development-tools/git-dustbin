@@ -1,0 +1,53 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+GetOptions(
+  'force' => \(my $force = 0),
+);
+
+my $branches = `git branch`;
+
+sub has_branch {
+  my ($branch) = @_;
+  return $branches =~ m{^\*?\s*\b$branch\b\s*$}m;
+}
+
+if (@ARGV == 1 && $ARGV[0] eq 'clear' && ! has_branch($ARGV[0])) {
+  if (!$force) {
+    die "git-dustbin: won't `clear` without `--force`\n";
+  } else {
+    die "git-dustbin: implement `clear --force`\n";
+  }
+}
+
+
+chomp(my $orig = `git rev-parse --abbrev-ref HEAD`);
+
+foreach my $branch (@ARGV) {
+  if ($branch eq '.' || $branch eq $orig) {
+    $branch = $orig;
+    if ($branch eq 'master') {
+      warn "git-dustbin: refusing to dustbin `master`\n";
+      next;
+    } else {
+      system { 'git' } qw(git checkout master);
+    }
+  }
+
+  if ($branch eq 'master') {
+    warn "git-dusbin: refusing to dustbin `master`\n";
+    next;
+  }
+
+  if (has_branch($branch)) {
+    system { 'git' } ('git', 'branch', '-m', $branch, "dustbin/${branch}");
+    if ($? != 0) {
+      warn "git-dustbin: couldn't move ${branch} to dustbin/${branch}\n";
+    }
+  } else {
+    warn "git-dustbin: no such branch ${branch}\n";
+  }
+}
