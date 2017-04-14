@@ -9,6 +9,14 @@ GetOptions(
 );
 
 my $branches = `git branch`;
+my @dust = map {
+  s/^\*?\s*//;
+  $_;
+} grep {
+  $_ =~ m{dustbin/}
+} split(/\n/, $branches);
+
+chomp(my $current = `git rev-parse --abbrev-ref HEAD`);
 
 sub has_branch {
   my ($branch) = @_;
@@ -19,16 +27,14 @@ if (@ARGV == 1 && $ARGV[0] eq 'clear' && ! has_branch($ARGV[0])) {
   if (!$force) {
     die "git-dustbin: won't `clear` without `--force`\n";
   } else {
-    die "git-dustbin: implement `clear --force`\n";
+    system { 'git' } ('git', 'branch', '-D', $_) foreach @dust;
+    exit(0);
   }
 }
 
-
-chomp(my $orig = `git rev-parse --abbrev-ref HEAD`);
-
 foreach my $branch (@ARGV) {
-  if ($branch eq '.' || $branch eq $orig) {
-    $branch = $orig;
+  if ($branch eq '.' || $branch eq $current) {
+    $branch = $current;
     if ($branch eq 'master') {
       warn "git-dustbin: refusing to dustbin `master`\n";
       next;
