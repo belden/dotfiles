@@ -260,6 +260,11 @@ vi style of % jumping to matching brace."
 
 (require 'multiple-cursors)
 (require 'region-bindings-mode)
+(require 'ansi-color)
+(defun display-ansi-colors ()
+  (interactive)
+  (ansi-color-apply-on-region (point-min) (point-max)))
+
 (region-bindings-mode-enable)
 (define-key region-bindings-mode-map "a" 'mc/mark-all-like-this)
 (define-key region-bindings-mode-map "p" 'mc/mark-previous-like-this)
@@ -267,6 +272,8 @@ vi style of % jumping to matching brace."
 (define-key region-bindings-mode-map "m" 'mc/mark-more-like-this-extended)
 (define-key region-bindings-mode-map "W" 'mc/mark-all-dwim)
 (define-key region-bindings-mode-map "%" 'mc/mark-all-in-region-regexp)
+(define-key region-bindings-mode-map "\e" 'display-ansi-colors)
 
 (global-unset-key (kbd "C-x 0"))
 (global-set-key (kbd "C-x 0") 'delete-other-windows)
+
