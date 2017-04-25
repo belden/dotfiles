@@ -1,0 +1,82 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+my $include_vendor = 0;
+my $include_test = 1;
+
+GetOptions(
+  'vendor!' => \$include_vendor,
+  'test!' => \$include_test,
+);
+
+my $func = shift(@ARGV);
+
+my @files = @ARGV;
+if (!@files) {
+  chomp(@files = qx{git grep -l $func});
+}
+
+foreach my $file (@files) {
+  next if $file eq '--';
+  next if $file =~ m{vendor/} && ! $include_vendor;
+  next if $file =~ m{test/} && ! $include_test;
+
+  open my $fh, '<', $file or die "$file: $!\n";
+
+  my $matched;
+  my $seen;
+  my $spaces = 0;
+
+  while (<$fh>) {
+    my $join_char = '-';
+
+    if (!$seen) {
+      if (/^(\s*)$func: function/ || /^(\s*)function \s*$func\b\s*\(/) {
+        $seen = 1;
+        $spaces = length($1);
+        $matched = 1;
+        $join_char = ':';
+      } elsif (/\bfunction\b\s*\(/ && /\b$func\b/ && ! /\b$func\./) {
+        $seen = 1;
+        $matched = 1;
+        ($spaces) = $_ =~ m{^(\s*)};
+        $spaces = length($spaces);
+        $join_char = ':';
+      }
+    }
+
+    $_ = colorize('salmon', $_, $func);
+  
+    if ($seen .. /^\s{$spaces}\}/) {
+      print join(colorize('cyan', $join_char), $file, $., $_);
+    }
+  
+    if ($seen && /^\s{$spaces}\}/) {
+      $seen = 0;
+    }
+  }
+
+  close $fh;
+  print colorize('cyan', "--\n") if $matched;
+}
+
+sub colorize {
+  my ($color, $line, $search) = @_;
+  $search ||= $line;
+
+  my ($start, $end);
+
+  if ($color eq 'salmon') {
+    $start = "\x1b\x5b\x30\x31\x3b\x33\x31\x6d\x1b\x5b\x4b";
+    $end = "\x1b\x5b\x6d\x1b\x5b\x4b";
+  } else {
+    $start = "\x1b\x5b\x33\x36\x6d";
+    $end = "\x1b\x5b\x6d";
+  }
+
+  $line =~ s{($search)}{$start$1$end};
+  return $line;
+}
