@@ -39,6 +39,12 @@ foreach my $file (@files) {
         $spaces = length($1);
         $matched = 1;
         $join_char = ':';
+      } elsif (/\b'$func'\b, function/) {
+        $seen = 1;
+        $matched = 1;
+        ($spaces) = $_ =~ m{^(\s*)};
+        $spaces = length($spaces);
+        $join_char = ':';
       } elsif (/\bfunction\b\s*\(/ && /\b$func\b/ && ! /\b$func\./) {
         $seen = 1;
         $matched = 1;
