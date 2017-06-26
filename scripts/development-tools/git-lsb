@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my @b;
+my $branch_to_checkout = shift(@ARGV);
+
+# mark active branch green
+my @branches = map {
+  chomp;
+  (my $pretty = $_) =~ s{^\* ([\S]+)}{* \e[0;32m${1}\e[0m};
+  s/^..//;
+  [$_, $pretty];
+} qx{git branch};
+
+# branch history
+my $i = -1;
+my %h;
+my @last_20_branches = (
+  map {
+    chomp;
+    $i++;
+    s{.* to }{};
+    $h{$_} ||= $i;
+    push @b, $_;
+  }
+  grep { /checkout: moving/ }
+  qx{git reflog -n 200}
+)[0..19];
+
+if ($branch_to_checkout) {
+  system { 'git' } ('git', 'checkout', $b[$branch_to_checkout]);
+  exec $0;
+  die "can't exec?!\n";
+}
+
+# format output somehow
+foreach (@branches) {
+  my $h = $h{$_->[0]};
+  $h = $h ? sprintf("@\{-%02d}", $h) : "";
+  printf "%-06s  %s\n", $h, $_->[1];
+}
