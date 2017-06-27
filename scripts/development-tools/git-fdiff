@@ -10,16 +10,17 @@ use Getopt::Long;
 GetOptions(
   'full|p|patch' => \(my $full = 0),
   'reverse|r|tac' => \(my $reverse = 0),
+  'branch|b=s' => \(my $branch = 'HEAD'),
 );
 
 my $args = join ' ', @ARGV;
 $args ||= '';
 
 if ($full) {
-  my $reverse = $reverse ? ' | tac ' : '';
-  system(qq!git fdiff $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log -p \${b}; done)!);
+  my $reverse = $reverse ? ' | perl -lne "unshift @o, \$_; END { print foreach @o }" ' : '';
+  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log -p \${b}; done)!);
 } else {
   my $log = $args ? qq{log "$args"} : qq{log };
-  system(qq{git $log --pretty=oneline \$(git merge-base origin/base HEAD)...HEAD});
+  system(qq{git $log --pretty=oneline \$(git merge-base origin/master $branch)...$branch});
 }
 
