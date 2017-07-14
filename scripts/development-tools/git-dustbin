@@ -18,6 +18,14 @@ my @dust = map {
 
 chomp(my $current = `git rev-parse --abbrev-ref HEAD`);
 
+sub normalize_branch_name {
+  my ($abbrev) = @_;
+  return $abbrev if $abbrev !~ /^@\{-\d+\}$/;
+  chomp(my $name = qx{git rev-parse --abbrev-ref $abbrev});
+  die "Couldn't convert $abbrev to a name\n" if ! $name;
+  return $name;
+}
+
 sub has_branch {
   my ($branch) = @_;
   return $branches =~ m{^\*?\s*\b$branch\b\s*$}m;
@@ -32,7 +40,14 @@ if (@ARGV == 1 && $ARGV[0] eq 'clear' && ! has_branch($ARGV[0])) {
   }
 }
 
+if (! @ARGV) {
+  print "$_\n" foreach @dust;
+  exit;
+}
+
 foreach my $branch (@ARGV) {
+  $branch = normalize_branch_name($branch);
+
   if ($branch eq '.' || $branch eq $current) {
     $branch = $current;
     if ($branch eq 'master') {

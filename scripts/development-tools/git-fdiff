@@ -6,21 +6,26 @@ use strict;
 use warnings;
 
 use Getopt::Long;
+Getopt::Long::Configure('bundling');
 
 GetOptions(
   'full|p|patch' => \(my $full = 0),
   'reverse|r|tac' => \(my $reverse = 0),
   'branch|b=s' => \(my $branch = 'HEAD'),
+  'colorwords|C' => \(my $cw = 0),
 );
+
+my $color = $cw ? ' --color-words ' : '';
 
 my $args = join ' ', @ARGV;
 $args ||= '';
 
 if ($full) {
   my $reverse = $reverse ? ' | perl -lne "unshift @o, \$_; END { print foreach @o }" ' : '';
-  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log --stat=120,120 -p \${b}; done)!);
+  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log --stat=120,120 $color -p \${b}; done)!);
 } else {
   my $log = $args ? qq{log "$args"} : qq{log };
-  system(qq{git $log --pretty=oneline \$(git merge-base origin/master $branch)...$branch});
+  my $reverse = $reverse ? ' --reverse' : '';
+  system(qq{git $log $color --pretty=oneline ${reverse} \$(git merge-base origin/master $branch)...$branch});
 }
 

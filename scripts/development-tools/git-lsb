@@ -36,7 +36,7 @@ if ($branch_to_checkout) {
 }
 
 # format output somehow
-foreach (@branches) {
+foreach (sort { ($h{$a->[0]} // 100000) <=> ($h{$b->[0]} // 100000) } @branches) {
   my $h = $h{$_->[0]};
   $h = $h ? sprintf("@\{-%02d}", $h) : "";
   printf "%-06s  %s\n", $h, $_->[1];
