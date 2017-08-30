@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p ~/Desktop/commit_images
+imagesnap - > ~/Desktop/commit_images/$(git log -1 --format=%h).png

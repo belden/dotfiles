@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd `git rev-parse --show-toplevel`
+git add .
+git commit -m 'WIP do not merge: temp commit'
