@@ -8,12 +8,14 @@ GetOptions(
   'force' => \(my $force = 0),
 );
 
+my ($mode) = $0 =~ m{git-(\w+)};
+
 my $branches = `git branch`;
 my @dust = map {
   s/^\*?\s*//;
   $_;
 } grep {
-  $_ =~ m{dustbin/}
+  $_ =~ m{$mode/}
 } split(/\n/, $branches);
 
 chomp(my $current = `git rev-parse --abbrev-ref HEAD`);
@@ -33,7 +35,7 @@ sub has_branch {
 
 if (@ARGV == 1 && $ARGV[0] eq 'clear' && ! has_branch($ARGV[0])) {
   if (!$force) {
-    die "git-dustbin: won't `clear` without `--force`\n";
+    die "git-$mode won't `clear` without `--force`\n";
   } else {
     system { 'git' } ('git', 'branch', '-D', $_) foreach @dust;
     exit(0);
@@ -51,7 +53,7 @@ foreach my $branch (@ARGV) {
   if ($branch eq '.' || $branch eq $current) {
     $branch = $current;
     if ($branch eq 'master') {
-      warn "git-dustbin: refusing to dustbin `master`\n";
+      warn "git-$mode refusing to $mode `master`\n";
       next;
     } else {
       system { 'git' } qw(git checkout master);
@@ -63,16 +65,16 @@ foreach my $branch (@ARGV) {
   }
 
   if ($branch eq 'master') {
-    warn "git-dusbin: refusing to dustbin `master`\n";
+    warn "git-$mode refusing to $mode `master`\n";
     next;
   }
 
   if (has_branch($branch)) {
-    system { 'git' } ('git', 'branch', '-m', $branch, "dustbin/${branch}");
+    system { 'git' } ('git', 'branch', '-m', $branch, "$mode/${branch}");
     if ($? != 0) {
-      warn "git-dustbin: couldn't move ${branch} to dustbin/${branch}\n";
+      warn "git-$mode couldn't move ${branch} to $mode/${branch}\n";
     }
   } else {
-    warn "git-dustbin: no such branch ${branch}\n";
+    warn "git-$mode no such branch ${branch}\n";
   }
 }
