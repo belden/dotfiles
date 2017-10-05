@@ -4,6 +4,9 @@
 (require 'rect)
 (require 'rainbow-delimiters)
 (require 'rainbow-identifiers)
+(require 'ace-jump-mode)
+(require 'ace-jump-buffer)
+(require 'ace-jump-zap)
 
 (define-minor-mode belden/cperl-power-mode
   "Add a bunch of keybindings that I got used to at AirWave"
@@ -22,6 +25,15 @@
 	    (define-key map (kbd "s-a h ~") 'hide-lines-matching)
 	    (define-key map (kbd "s-a h !") 'hide-lines-not-matching)
 	    (define-key map (kbd "s-a h 0") 'hide-lines-show-all)
+
+            ;; ace jumping
+            (define-key map (kbd "s-a j l") 'ace-jump-line-mode)
+            (define-key map (kbd "s-a j c") 'ace-jump-char-mode)
+            (define-key map (kbd "s-a j j") 'ace-jump-mode)
+            (define-key map (kbd "s-a j p") 'ace-jump-mode-pop-mark)
+            (define-key map (kbd "s-a j b") 'ace-jump-buffer)
+            (define-key map (kbd "s-a j B") 'ace-jump-buffer-other-window)
+            (define-key map (kbd "s-a j z") 'ace-jump-zap-to-char-dwim)
 
 	    ;; understand more about the code you're looking at, using B:: modules
 	    (define-key map (kbd "s-a B c") 'cperl-concise-region)

@@ -43,7 +43,12 @@
     rotate
     sos
     org
-    sotlisp) "a list of packages to ensure are installed at launch.")
+    sotlisp
+    ace-jump-mode
+    ace-jump-buffer
+    ace-jump-zap
+    ace-window
+    ) "a list of packages to ensure are installed at launch.")
 
 (defun belden/packages-installed-p ()
   (loop for p in belden/required-packages
