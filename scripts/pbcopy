@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -z "${TMUX_PANE}" ]]; then
+if [[ -n "${TMUX_PANE}" ]]; then
   reattach-to-user-namespace /usr/bin/pbcopy
 else
   /usr/bin/pbcopy
