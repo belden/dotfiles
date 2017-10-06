@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ -z "${TMUX_PANE}" ]]; then
+  reattach-to-user-namespace /usr/bin/pbpaste
+else
+  /usr/bin/pbpaste
+fi
