@@ -51,15 +51,17 @@
 (defun belden-toggle-hide-subs ()
   (interactive)
   (let ((funcstr "sub "))
-    (if (string= comment-start ";")
+    (if (string-match "lisp" (this-buffer-major-mode))
         (setq funcstr
-          "(def\\(un\\|var\\|group\\|alias\\|custom\\|const\\|subst\\|macro\\|face\\) "))
-    (if (string= comment-start "// ")
-        (setq funcstr
-          "func"))
+        "(def\\(un\\|var\\|group\\|alias\\|custom\\|const\\|subst\\|macro\\|face\\) "))
+    (if (string-match "javascript\\|js-mode" (this-buffer-major-mode))
+  (setq funcstr "function\\|[^\\\s]([^)]*)\\ *{")
+      (if (string= comment-start "// ")
+    (setq funcstr
+    "func")))
     (if line-move-ignore-invisible
         (progn (show-all-invisible) (setq line-move-ignore-invisible nil))
-      (hide-non-matching-lines (format "^[\t ]*%s" funcstr))
+      (hide-non-matching-lines (format "[\t ]*%s" funcstr))
       )))
 
 (defun belden-isearch-star-triggers-regex-mode ()

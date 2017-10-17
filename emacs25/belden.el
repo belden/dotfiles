@@ -168,17 +168,16 @@ vi style of % jumping to matching brace."
   (let ((funcstr "sub "))
     (if (string-match "lisp" (this-buffer-major-mode))
         (setq funcstr
-	      "(def\\(un\\|var\\|group\\|alias\\|custom\\|const\\|subst\\|macro\\|face\\) "))
-    (if (string-match "javascript" (this-buffer-major-mode))
-	(setq funcstr "function")
+        "(def\\(un\\|var\\|group\\|alias\\|custom\\|const\\|subst\\|macro\\|face\\) "))
+    (if (string-match "javascript\\|js-mode" (this-buffer-major-mode))
+  (setq funcstr "function\\|[^\\\s]([^)]*)\\ *{")
       (if (string= comment-start "// ")
-	  (setq funcstr
-		"func")))
+    (setq funcstr
+    "func")))
     (if line-move-ignore-invisible
         (progn (show-all-invisible) (setq line-move-ignore-invisible nil))
       (hide-non-matching-lines (format "[\t ]*%s" funcstr))
       )))
-
 
 (defun belden/align-to-fat-arrow (BEG END)
   "(align-regexp) to '=>'"
