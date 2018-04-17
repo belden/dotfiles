@@ -1,0 +1,176 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my $file_or_dir = shift(@ARGV);
+die "usage: $0 <file_or_directory>\n" if ! $file_or_dir;
+
+my @bad;
+if (-f $file_or_dir) {
+  push @bad, es6ify($file_or_dir);
+} elsif (-d $file_or_dir) {
+  opendir my $dh, $file_or_dir or die "opendir $file_or_dir: $!\n";
+  while (my $file = readdir $dh) {
+    push @bad, es6ify("$file_or_dir/$file");
+  }
+  closedir $dh;
+}
+
+if (@bad) {
+  use Data::Dumper;
+  die "errors: " . Dumper(\@bad);
+}
+
+sub cat {
+  my ($file) = @_;
+  local (@ARGV, $/) = ($file);
+  return (<>);
+}
+
+sub minus {
+  my ($a1, $a2) = @_;
+  my %s = map { ($_ => 1) } @$a2;
+  return grep { !$s{$_} } @$a1;
+}
+
+sub dedup {
+  my %s = ();
+  return grep { ! $s{$_}++ } @_;
+}
+
+sub get_cloudui_globals {
+  my ($file) = @_;
+
+  open my $fh, '<', $file or die "$file: $!\n";
+  my (@globals, @modules, @imports);
+  my %imported;
+  while (<$fh>) {
+    chomp;
+    next if m{//};
+
+    if (/import.*from.*;/) {
+      chomp(my $have = $_);
+      $imported{$have}++;
+      next;
+    }
+
+    if (my @match_globals = $_ =~ m{CloudUI\.([A-Za-z_0-9]+)}g) {
+      push @globals, grep { $_ !~ /__container__/ } @match_globals;
+    }
+
+    if (my @match_modules = $_ =~ m{CloudUI\.([A-Za-z0-9_]+)(?:\s*=.*(?:extend|create))}g) {
+      push @modules, @match_modules;
+    }
+
+    if ($_ =~ m{Ember\.}) {
+      push @imports, "import Ember from 'ember';";
+    }
+    if ($_ =~ m{DS\.}) {
+      push(@imports, "import DS from 'ember-data';");
+    }
+  }
+  close $fh;
+
+  my @skiplist = qw(swfPath);
+  @globals = minus(\@globals, [@modules, @skiplist]);
+
+  @imports = minus(\@imports, [keys %imported]);
+
+  return +{
+    globals => [dedup @globals],
+    modules => [dedup @modules],
+    imports => [dedup @imports],
+  };
+}
+
+sub es6ify {
+  my ($file) = @_;
+  local $@;
+  eval { _es6ify($file) };
+  if ($@) {
+    return [$file, $@];
+  }
+  return ();
+}
+
+sub _es6ify {
+  my ($file) = @_;
+
+  my $parse = get_cloudui_globals($file);
+  my $modules = join('|', @{$parse->{modules}});
+
+  die "insane file has no visible modules: $file\n" if ! $modules;
+  die "insane file has too many modules: $file\n" if $modules =~ /\|/;
+
+  my @imports;
+  my %rename;
+  if (@{$parse->{globals}}) {
+    my $search = join '|', @{$parse->{globals}};
+    my @deps = qx{git grep -P 'CloudUI\\.(?:$search) ='};
+    push @deps, qx{git grep -P 'export default (?:$search);'};
+    chomp @deps;
+    die "couldn't find all imports: $search -- $file!\n" if @deps != @{$parse->{globals}};
+
+    @imports = map {
+      my ($file, $full, $module) = $_ =~ m{^(.*?)\.js:(CloudUI.($search)) =};
+      if (!$file) {
+        ($file, $module) = $_ =~ m{^(.*?)\.js:export default ($search);};
+        $full = "CloudUI.$module";
+      }
+
+      if (!$file) {
+        die "couldn't figure imports for $file -- $search\n";
+      }
+
+      $rename{$full} = $module;
+      "import $module from 'cloud-ui/$file';";
+    } @deps;
+
+    @imports = dedup @imports;
+  }
+
+  @imports = map { s,import computed from 'cloud-ui/helpers/computed',import computed as cloudComputed from 'cloud-ui/helpers/computed',; $_ } @imports;
+  $rename{'CloudUI.computed'} = 'cloudComputed';
+
+  my $renames = join '|', keys(%rename);
+
+  local $^I = '';
+  local (@ARGV) = ($file);
+  my @exports = ();
+  my %imported;
+  while (<>) {
+    if (s{^CloudUI\.($modules) = }{var $1 = }) {
+      push @exports, $1;
+    }
+  
+    if ($renames) {
+      s/($renames)/$rename{$1}/ge;
+    }
+
+    if ($_ !~ /^require/) {
+      print $_;
+    }
+
+    if (m{^// All rights reserved}) {
+      if (@{$parse->{imports}}) {
+        print "\n";
+        print "$_\n" foreach @{$parse->{imports}};
+        @{$parse->{imports}} = ();
+      }
+      if (@imports) {
+        print "\n";
+        print join("\n", @imports);
+        @imports = ();
+      }
+    }
+
+    # if last line, dump exports
+    if (eof(ARGV)) {
+      if (@exports) {
+        print "\n";
+        print "export default $_;\n" foreach @exports;
+      }
+    }
+  }
+}
