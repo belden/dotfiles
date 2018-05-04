@@ -1,0 +1,105 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub find_imports {
+  my ($me) = @_;
+
+  my (@imports, @exports);
+
+  open my $fh, '<', $me or die "$me: $!\n";
+  while (<$fh>) {
+    chomp;
+    if ($_ =~ m{var (\S+) = (window\.((?:EmberFabric|CloudUI)\.\S+)); // pseudo-import}) {
+      my ($import, $window, $export) = ($1, $2, $3);
+      push @imports, +{
+        file => $me,
+        import => $import,
+        # export => $export,
+        window => $window,
+      };
+    } elsif ($_ =~ m{^(window\.((?:EmberFabric|CloudUI)\.\S+)) = (\S+); // pseudo-export}) {
+      my ($window, $export, $import) = ($1, $2, $3);
+      push @exports, +{
+        file => $me,
+        # import => $import,
+        export => $export,
+        window => $window,
+      };
+    }
+  }
+
+  return(\@imports, \@exports);
+}
+
+sub expand_files {
+  my ($fdg) = @_;
+
+  my @out = ($fdg);
+
+  if ($fdg =~ /\*/ || -d $fdg) {
+    $fdg =~ s{\*.*}{};
+    chomp(@out = qx{find $fdg -type f -name '*.js'});
+  }
+
+  return map { s{//}{/}g; $_ } @out;
+}
+
+sub directory_imports {
+  my (@files) = @_;
+
+  my %queue;
+  my %dict;
+
+  foreach my $real_file (@files) {
+    my ($imports, $exports) = find_imports($real_file);
+
+    foreach my $import (@$imports) {
+      $queue{$real_file}{$import->{window}} = 1;
+    }
+
+    foreach my $export (@$exports) {
+      $dict{$export->{window}} = $export->{file};
+    }
+  }
+
+  return (\%queue, \%dict);
+}
+
+my @expanded =
+  map { expand_files($_) }
+  map {
+    if (/^require/) {
+      s{^require\('cloud_ui/(app.*)'\);}{$1};
+      if ($_ !~ /\*/) {
+        $_ .= '.js';
+      }
+    }
+    $_;
+  }
+  @ARGV;
+my ($queue, $dict) = directory_imports(@expanded);
+
+# my %used;
+# while (my ($file, $imports) = each %$queue) {
+#   my @imported_files = map { $dict->{$_} } keys %$imports;
+#   foreach my $imported (@imported_files) {
+#     $used{$imported}{$file} = 1;
+#   }
+# }
+
+my @queue = @expanded;
+my %done;
+while (my $this = shift (@queue)) {
+  my @prereqs = grep { $_ } map { $dict->{$_} } grep { $_ } keys %{$queue->{$this} || {}};
+  if (scalar @prereqs) {
+    delete $queue->{$this};
+    unshift @queue, @prereqs;
+    push @queue, $this;
+  } else {
+    next if $done{$this}++;
+    $this =~ s{\.js$}{};
+    print "require('cloud_ui/$this');\n";
+  }
+}
