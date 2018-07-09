@@ -22,7 +22,7 @@ $args ||= '';
 
 if ($full) {
   my $reverse = $reverse ? ' | perl -lne "unshift @o, \$_; END { print foreach @o }" ' : '';
-  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log --stat=120,120 $color -p \${b}; done)!);
+  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log -n 1 --stat=120,120 $color -p \${b}; done)!);
 } else {
   my $log = $args ? qq{log "$args"} : qq{log };
   my $reverse = $reverse ? ' --reverse' : '';
