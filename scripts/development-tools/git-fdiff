@@ -9,23 +9,31 @@ use Getopt::Long;
 Getopt::Long::Configure('bundling');
 
 GetOptions(
-  'full|p|patch' => \(my $full = 0),
+  'full|p|c|patch' => \(my $full = 0),
   'reverse|r|tac' => \(my $reverse = 0),
+  'whitespace|w' => \(my $ignore_whitespace = 0),
   'branch|b=s' => \(my $branch = 'HEAD'),
   'colorwords|C' => \(my $cw = 0),
+  'tidy-log!' => \(my $tidy_log = 1),
 );
+
+my $whitespace = $ignore_whitespace ? ' -w ' : '';
+
+my $log_format = $tidy_log ? '--pretty=oneline' : '';
 
 my $color = $cw ? ' --color-words ' : '';
 
 my $args = join ' ', @ARGV;
 $args ||= '';
 
+$ENV{LESS} = '-R';
+
 if ($full) {
   my $reverse = $reverse ? ' | perl -lne "unshift @o, \$_; END { print foreach @o }" ' : '';
-  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log -n 1 --stat=120,120 $color -p \${b}; done)!);
+  system(qq!git fdiff --branch $branch $reverse | (while read b; do b=\$(echo \$b | cut -f 1  -d " "); git log $whitespace -n 1 --stat=120,120 $color -p \${b}; done)!);
 } else {
   my $log = $args ? qq{log "$args"} : qq{log };
   my $reverse = $reverse ? ' --reverse' : '';
-  system(qq{git $log $color --pretty=oneline ${reverse} \$(git merge-base origin/master $branch)...$branch});
+  system(qq{git $log $whitespace $color $log_format ${reverse} \$(git merge-base origin/master $branch)...$branch});
 }
 
