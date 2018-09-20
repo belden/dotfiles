@@ -1,0 +1,28 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub process_file {
+  my ($file) = @_;
+
+  return $file if -e $file;
+
+  if ($file =~ /^(.*):(\d+(?:-\d+)?)$/) {
+    my ($path, $lines) = ($1, $2);
+    die "$path: $!\n" if ! -e $path;
+    system("sed -n '${lines}p' < '$path' > '$file'");
+    return process_file($file);
+  }
+
+  die "no clue how to handle: $file\n";
+}
+
+if (@ARGV != 2) {
+  die "usage: $0 file1 file2\n";
+}
+
+my ($f1, $f2) = map { process_file($_) } @ARGV;
+
+system "/bin/bash -c 'icdiff --whole-file <(jq . --sort-keys < $f1) <(jq . --sort-keys < $f2) | less'";
+
