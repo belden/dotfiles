@@ -1,0 +1,332 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Cwd qw(abs_path);
+use Data::Dumper;
+
+my $repl_depth = 0;
+sub prompt {
+  my ($prompt) = @_;
+
+  $| = 1;
+  chomp $prompt;
+  $prompt =~ s{(?<!\s)$}{ };
+  print $prompt;
+  chomp(my $response = <STDIN>);
+
+  if ($response eq 'repl') {
+    $repl_depth++;
+    REPL: while($repl_depth) {
+      my $c = prompt($repl_depth > 1 ? "($repl_depth) >" : ">");
+      if ($c) {
+        if ($c eq 'repl') {
+          $repl_depth++;
+        } elsif ($c =~ /^(\.|q(?:uit)?|exit)?$/) {
+          $repl_depth--;
+        } else {
+          local $@;
+          eval "$c";
+          if ($@) {
+            print "command error: $@";
+          }
+        }
+      }
+    }
+    $repl_depth--;
+  }
+
+  return $response;
+}
+
+sub prompt_or {
+  my ($prompt, $default) = @_;
+  my $got = prompt("$prompt [$default]:");
+  return $got || $default;
+}
+
+sub run {
+  my ($command) = @_;
+  if (!defined wantarray) {
+    system($command);
+    return;
+  } elsif (wantarray) {
+    chomp(my @out = qx{$command});
+    return @out;
+  } else {
+    chomp(my $out = qx{$command});
+    return $out;
+  }
+}
+
+my $this_branch = run('git rev-parse --abbrev-ref HEAD');
+my $branch = prompt_or('branch to rotate', $this_branch);
+my $master = prompt_or('master branch', 'origin/master');
+my $merge_base = run("git merge-base $master HEAD");
+
+my $commits = gather_commits($merge_base);
+
+while (1) {
+  cls();
+  my $action = prompt_or('action? (mark, dump, examine, ready, split, quit, pin) ', 'dump');
+  if ($action eq 'dump') {
+    paginate_commits($commits);
+  } elsif ($action eq 'mark') {
+    dump_and_mark_commits($commits);
+    paginate_commits($commits);
+  } elsif ($action =~ /^pin/) {
+    my ($command) = $action =~ /^pin ([\d,]+)/;
+    mark($commits, $command);
+  } elsif ($action eq 'ready') {
+    my ($root, $prev) = (abs_path('.'), '');
+    while (! -d '.git') {
+      chdir('..');
+      ($prev, $root) = ($root, abs_path('.'));
+      die "couldn't find .git/ directory - are you in a git repo?\n" if $prev eq $root;
+    }
+    chdir($root) or die "chdir $root: $!\n";
+    ready($commits, $branch, $merge_base);
+  } elsif ($action eq 'examine') {
+    examine($commits, sub { shift()->{mode} eq 'pin' });
+  } elsif ($action =~ /^split (\S+)/) {
+    split_commit($commits, $1);
+    $commits = gather_commits($merge_base);
+  } elsif ($action eq 'quit') {
+    exit;
+  } else {
+    die "not sure how to handle: $action\n";
+  }
+}
+
+sub unzip(&@) {
+  my $picker = shift;
+  my ($l, $r) = ([], []);
+  foreach (@_) {
+    push @{$picker->() ? $l : $r}, $_;
+  }
+  return ($l, $r);
+}
+
+sub ready {
+  my ($commits, $branch, $merge_base) = @_;
+  my $rotate_branch = prompt_or("rotated branch name", "rotate-$branch");
+  run("git checkout $merge_base");
+  run("git checkout -b $rotate_branch");
+
+  my ($cherry, $rotate) = unzip { $_->{mode} eq 'pin' } @$commits;
+  foreach my $c (@$cherry) {
+    run("git cherry-pick $c->{sha}");
+    if ($?) {
+      die "yikes, error cherry-picking $c->{sha}\n";
+    }  
+  }
+
+  my %message_for_file = ();
+  foreach my $r (@$rotate) {
+    foreach my $f (@{$r->{files}}) {
+      my @message;
+      if ($r->{commit_subject}) {
+        push @message, $r->{commit_subject};
+      }
+      if ($r->{commit_body}) {
+        push @message, $r->{commit_body};
+      }
+
+      if (@message) {
+        push @{$message_for_file{$f}}, join("\n", @message);
+      }
+    }
+  }
+
+  my %seen;
+  my $temp_commit_file = get_filename('tmp.message');
+  foreach my $r (@$rotate) {
+    foreach my $file (@{$r->{files}}) {
+      next if $seen{$file}++;
+      run("git show $branch:$file > $file");
+      run("git add $file");
+
+      my $commit_message = join("\n", map { "* $_" } @{$message_for_file{$file}});
+      open my $fh, '+>', $temp_commit_file;
+      print($fh "Make this file use es6 imports/exports\n\n$commit_message");
+      close $fh;
+      run(qq{git commit -F $temp_commit_file});
+    }
+  }
+}
+
+sub get_filename {
+  my ($file) = @_;
+  my $me_as_dir = Cwd::abs_path($0);
+  $me_as_dir =~ s{^(.*/)}{$1.};
+  if (! -d $me_as_dir) {
+    mkdir $me_as_dir or die "mkdir $me_as_dir: $!\n";
+  }
+  return "$me_as_dir/$file";
+}
+
+sub slurp {
+  my ($filename) = @_;
+  local (@ARGV, $/) = ($filename);
+  return (<>);
+}
+
+sub gather_commits {
+  my ($merge_base, $not_interactive) = @_;
+  my $interactive = !$not_interactive;
+
+  my %saved;
+  my $logfile = get_filename("$branch-$merge_base.dump");
+  if (-f $logfile) {
+    my $contents = slurp($logfile);
+    my $VAR1 = {};
+    eval "$contents";
+    %saved = %$VAR1;
+  }
+
+  my @commits = map {
+    my ($sha, $subject) = $_ =~ /^(\S+) (.+)$/;
+    my $mode = 'rotate';
+    if ($subject =~ s/^pin!//) {
+      $mode = 'pin';
+    }
+
+    my @files = run(qq{git diff --stat=1200,1200 $sha^...$sha});
+    pop @files; # discard stat line
+    @files = map { s/^ (\S+)\s+\|\s+\d+\s+.*/$1/; $_ } @files;
+
+    my $commit_subject = run("git log -n 1 --format='%s' $sha");
+    my $commit_body = run("git log -n 1 --format='%b' $sha");
+
+    if ($interactive) {
+      if (!$saved{$subject}) {
+        print("subject: $commit_subject\n");
+        print("body: $commit_body\n");
+        my $keep = prompt_or("keep (y/n)", "y");
+        if ($keep eq '&y') {
+          $interactive = 0;
+        }
+
+        if ($keep =~ /-subject/) {
+          $commit_subject = '';
+        }
+        if ($keep =~ /-body/) {
+          $commit_body = '';
+        }
+
+        if ($keep eq 'n') {
+          $commit_subject = '';
+          $commit_body = '';
+        }
+
+        $saved{$subject} = {commit_subject => $commit_subject, commit_body => $commit_body};
+
+        # save off choices
+        open my $fh, '+>', $logfile or die "$logfile: $!\n";
+        print($fh Data::Dumper::Dumper(\%saved));
+        close $fh;
+      } else {
+        $commit_subject = $saved{$subject}{commit_subject};
+        $commit_body = $saved{$subject}{commit_body};
+      }
+    }
+
+    ({
+      sha => $sha,
+      commit_subject => $commit_subject,
+      commit_body => $commit_body,
+      line => $_,
+      mode => $mode,
+      files => \@files,
+    });
+  }
+  reverse(run("git log --pretty=oneline $merge_base...HEAD"));
+
+  return \@commits;
+}
+
+sub cls {
+  return;
+  run('clear');
+}
+
+
+sub split_commit {
+  my ($commits, $target) = @_;
+
+  my $sha = $target;
+  if ($target =~ /^\d+$/) {
+    $sha = $commits->[$target - 1]{sha};
+  }
+
+  my $file = prompt("split off which file");
+  if ($file) {
+    run("git rebase -i $sha^");
+    run("git reset HEAD^");
+
+    run("git add $file");
+    my $message = prompt_or("commit message for $file", $file);
+    run(qq{git commit --no-edit -m "$message"});
+
+    run(qq{git add .});
+    run(qq{git commit --no-edit -C $sha});
+    run("git rebase --continue");
+  }
+}
+
+sub examine {
+  my ($commits, $matcher) = @_;
+  foreach my $c (@$commits) {
+    next if !$matcher->($c);
+    run("git show --stat=120,120 -p $c->{sha}");
+  }
+}
+
+sub paginate_commits {
+  my ($commits) = @_;
+  dump_commits($commits, sub { my ($i) = @_; $i && $i % 39 == 0 }, sub { prompt('press enter to continue') });
+}
+
+sub dump_commits {
+  my ($commits, $when, $cb) = @_;
+  foreach (my $i = 0; $i < @$commits; $i++) {
+    my $c = $commits->[$i];
+    my $rp = $c->{mode} eq 'rotate' ? '@' : '!'; # a `@` looks like it's rotating; a `!` looks like a map pin
+    printf "%s %03d %s %s\n", $rp, $i+1, $c->{sha}, $c->{commit_subject};
+
+    if ($when && $when->($i)) {
+      $cb && $cb->($commits);
+    }
+  }
+}
+
+sub dump_and_mark_commits {
+  my ($commits) = @_;
+  dump_commits($commits, sub { my ($i) = @_; return $i && $i % 10 == 0; }, \&mark);
+  mark($commits);
+}
+
+sub mark {
+  my ($commits, $command) = @_;
+
+  $command ||= prompt('eg: rotate 1,5,8; pin 2,4,9');
+  if ($command) {
+    my ($rotate) = $command =~ m{r(?:otate)? ?([\d,]+)};
+    foreach my $r (expand_range($rotate)) {
+      $commits->[$r]{mode} = 'rotate';
+    }
+
+    my ($pin) = $command =~ m{p(?:in)? ?([\d,]+)};
+    foreach my $p (expand_range($pin)) {
+      $commits->[$p]{mode} = 'pin';
+    }
+  }
+}
+
+sub expand_range {
+  my ($range) = @_;
+  if (! defined $range) {
+    return ();
+  }
+  return map { $_ - 1 } split(/,/, $range);
+}
