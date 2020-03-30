@@ -3,18 +3,43 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
+GetOptions(
+  't|test' => \(my $just_testing = 0),
+);
+
+$|++;
+
+if ($just_testing) {
+  print "just testing...\n";
+}
+
 my $file_or_dir = shift(@ARGV);
 die "usage: $0 <file_or_directory>\n" if ! $file_or_dir;
 
 my @bad;
 if (-f $file_or_dir) {
-  push @bad, es6ify($file_or_dir);
+  push @bad, es6ify($file_or_dir, $just_testing);
 } elsif (-d $file_or_dir) {
-  opendir my $dh, $file_or_dir or die "opendir $file_or_dir: $!\n";
-  while (my $file = readdir $dh) {
-    push @bad, es6ify("$file_or_dir/$file");
+  my @queue = ($file_or_dir, @ARGV);
+
+  while (my $dir = shift(@queue)) {
+    print "processing $dir/\n" if $just_testing;
+
+    opendir my $dh, $dir or die "opendir $dir: $!\n";
+
+    while (my $file = readdir $dh) {
+      next if $file eq '.' or $file eq '..';
+      if (-d "$dir/$file") {
+        push @queue, "$dir/$file";
+      } elsif (-f "$dir/$file") {
+        print "\t$dir/$file\n" if $just_testing;
+        push @bad, es6ify("$dir/$file", $just_testing);
+      }
+    }
+  
+    closedir $dh;
   }
-  closedir $dh;
 }
 
 if (@bad) {
@@ -45,9 +70,14 @@ sub get_cloudui_globals {
   open my $fh, '<', $file or die "$file: $!\n";
   my (@globals, @modules, @imports);
   my %imported;
+  my $skip = 0;
   while (<$fh>) {
     chomp;
     next if m{//};
+#    if (/^export/) {
+#      $skip = 1;
+#      last;
+#    }
 
     if (/import.*from.*;/) {
       chomp(my $have = $_);
@@ -55,11 +85,19 @@ sub get_cloudui_globals {
       next;
     }
 
-    if (my @match_globals = $_ =~ m{CloudUI\.([A-Za-z_0-9]+)}g) {
+    if (my @match_globals = $_ =~ m{(?:CloudUI|EmberFabric)\.([A-Za-z_0-9]+)}g) {
       push @globals, grep { $_ !~ /__container__/ } @match_globals;
     }
 
-    if (my @match_modules = $_ =~ m{CloudUI\.([A-Za-z0-9_]+)(?:\s*=.*(?:extend|create))}g) {
+#     if (my @match_modules = $_ =~ m{(?:CloudUI|EmberFabric)\.([A-Za-z0-9_]+)(?:\s*=.*(?:extend|create))}g) {
+#       push @modules, @match_modules;
+#     }
+
+    if (my @match_modules = $_ =~ m{window.CloudUI\.([A-Za-z0-9_]+) = \1; // pseudo-export}g) {
+      push @modules, @match_modules;
+    }
+
+    if (my @match_modules = $_ =~ m{var (\S+) = fabric.util.createClass}g) {
       push @modules, @match_modules;
     }
 
@@ -78,6 +116,7 @@ sub get_cloudui_globals {
   @imports = minus(\@imports, [keys %imported]);
 
   return +{
+    skip => $skip,
     globals => [dedup @globals],
     modules => [dedup @modules],
     imports => [dedup @imports],
@@ -85,19 +124,29 @@ sub get_cloudui_globals {
 }
 
 sub es6ify {
-  my ($file) = @_;
+  my ($file, $just_testing) = @_;
+  return () if $file !~ /\.js$/;
+
   local $@;
-  eval { _es6ify($file) };
+  my $out;
+  eval { $out = _es6ify($file, $just_testing) };
   if ($@) {
-    return [$file, $@];
+    chomp($@);
+    return "$file: $@";
+  }
+
+  if ($out->{not_found}) {
+    return join("\n", map { "$file: $_" } @{$out->{not_found}});
   }
   return ();
 }
 
 sub _es6ify {
-  my ($file) = @_;
+  my ($file, $just_testing) = @_;
 
   my $parse = get_cloudui_globals($file);
+  return if $parse->{skip};
+
   my $modules = join('|', @{$parse->{modules}});
 
   die "insane file has no visible modules: $file\n" if ! $modules;
@@ -107,13 +156,22 @@ sub _es6ify {
   my %rename;
   if (@{$parse->{globals}}) {
     my $search = join '|', @{$parse->{globals}};
-    my @deps = qx{git grep -P 'CloudUI\\.(?:$search) ='};
+    my @deps = qx{git grep -P '(?:CloudUI|EmberFabric)\\.(?:$search) ='};
     push @deps, qx{git grep -P 'export default (?:$search);'};
     chomp @deps;
-    die "couldn't find all imports: $search -- $file!\n" if @deps != @{$parse->{globals}};
+
+    my @not_found = ();
+    my $deps = join "\n", @deps;
+    foreach my $g (@{$parse->{globals}}) {
+      next if $deps =~ /$g/;
+      push @not_found, $g;
+    }
+    if (@not_found) {
+      $parse->{not_found} = \@not_found;
+    }
 
     @imports = map {
-      my ($file, $full, $module) = $_ =~ m{^(.*?)\.js:(CloudUI.($search)) =};
+      my ($file, $full, $namespace, $module) = $_ =~ m{^(.*?)\.js:((CloudUI|EmberFabric).($search)) =};
       if (!$file) {
         ($file, $module) = $_ =~ m{^(.*?)\.js:export default ($search);};
         $full = "CloudUI.$module";
@@ -130,8 +188,16 @@ sub _es6ify {
     @imports = dedup @imports;
   }
 
-  @imports = map { s,import computed from 'cloud-ui/helpers/computed',import computed as cloudComputed from 'cloud-ui/helpers/computed',; $_ } @imports;
+  return if $just_testing;
+
+  @imports = map {
+    s,import computed from 'cloud-ui/helpers/computed',import computed as cloudComputed from 'cloud-ui/helpers/computed',;
+    s,import RSVP from 'cloud-ui/helpers/rsvp',import { RSVP as CloudRSVP } from 'cloud-ui/helpers/rsvp',;
+    $_;
+  } @imports;
+
   $rename{'CloudUI.computed'} = 'cloudComputed';
+  $rename{'CloudUI.RSVP'} = 'CloudRSVP';
 
   my $renames = join '|', keys(%rename);
 
@@ -140,7 +206,7 @@ sub _es6ify {
   my @exports = ();
   my %imported;
   while (<>) {
-    if (s{^CloudUI\.($modules) = }{var $1 = }) {
+    if (s{^(?:CloudUI|EmberFabric)\.($modules) = }{var $1 = }) {
       push @exports, $1;
     }
   
@@ -173,4 +239,6 @@ sub _es6ify {
       }
     }
   }
+
+  return $parse;
 }
